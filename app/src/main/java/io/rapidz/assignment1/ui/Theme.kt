@@ -170,10 +170,92 @@ private val AdminColorScheme = lightColorScheme(
 	scrim = md_theme_admin_scrim,
 )
 
+private val CompletedQuestionColorScheme = lightColorScheme(
+	primary = md_theme_completed_question_primary,
+	onPrimary = md_theme_completed_question_onPrimary,
+	primaryContainer = md_theme_completed_question_primaryContainer,
+	onPrimaryContainer = md_theme_completed_question_onPrimaryContainer,
+	secondary = md_theme_completed_question_secondary,
+	onSecondary = md_theme_completed_question_onSecondary,
+	secondaryContainer = md_theme_completed_question_secondaryContainer,
+	onSecondaryContainer = md_theme_completed_question_onSecondaryContainer,
+	tertiary = md_theme_completed_question_tertiary,
+	onTertiary = md_theme_completed_question_onTertiary,
+	tertiaryContainer = md_theme_completed_question_tertiaryContainer,
+	onTertiaryContainer = md_theme_completed_question_onTertiaryContainer,
+	error = md_theme_completed_question_error,
+	errorContainer = md_theme_completed_question_errorContainer,
+	onError = md_theme_completed_question_onError,
+	onErrorContainer = md_theme_completed_question_onErrorContainer,
+	background = md_theme_completed_question_background,
+	onBackground = md_theme_completed_question_onBackground,
+	surface = md_theme_completed_question_surface,
+	onSurface = md_theme_completed_question_onSurface,
+	surfaceVariant = md_theme_completed_question_surfaceVariant,
+	onSurfaceVariant = md_theme_completed_question_onSurfaceVariant,
+	outline = md_theme_completed_question_outline,
+	inverseOnSurface = md_theme_completed_question_inverseOnSurface,
+	inverseSurface = md_theme_completed_question_inverseSurface,
+	inversePrimary = md_theme_completed_question_inversePrimary,
+	surfaceTint = md_theme_completed_question_surfaceTint,
+	outlineVariant = md_theme_completed_question_outlineVariant,
+	scrim = md_theme_completed_question_scrim,
+)
+
+private val UncompletedQuestionColorScheme = lightColorScheme(
+	primary = md_theme_uncompleted_question_primary,
+	onPrimary = md_theme_uncompleted_question_onPrimary,
+	primaryContainer = md_theme_uncompleted_question_primaryContainer,
+	onPrimaryContainer = md_theme_uncompleted_question_onPrimaryContainer,
+	secondary = md_theme_uncompleted_question_secondary,
+	onSecondary = md_theme_uncompleted_question_onSecondary,
+	secondaryContainer = md_theme_uncompleted_question_secondaryContainer,
+	onSecondaryContainer = md_theme_uncompleted_question_onSecondaryContainer,
+	tertiary = md_theme_uncompleted_question_tertiary,
+	onTertiary = md_theme_uncompleted_question_onTertiary,
+	tertiaryContainer = md_theme_uncompleted_question_tertiaryContainer,
+	onTertiaryContainer = md_theme_uncompleted_question_onTertiaryContainer,
+	error = md_theme_uncompleted_question_error,
+	errorContainer = md_theme_uncompleted_question_errorContainer,
+	onError = md_theme_uncompleted_question_onError,
+	onErrorContainer = md_theme_uncompleted_question_onErrorContainer,
+	background = md_theme_uncompleted_question_background,
+	onBackground = md_theme_uncompleted_question_onBackground,
+	surface = md_theme_uncompleted_question_surface,
+	onSurface = md_theme_uncompleted_question_onSurface,
+	surfaceVariant = md_theme_uncompleted_question_surfaceVariant,
+	onSurfaceVariant = md_theme_uncompleted_question_onSurfaceVariant,
+	outline = md_theme_uncompleted_question_outline,
+	inverseOnSurface = md_theme_uncompleted_question_inverseOnSurface,
+	inverseSurface = md_theme_uncompleted_question_inverseSurface,
+	inversePrimary = md_theme_uncompleted_question_inversePrimary,
+	surfaceTint = md_theme_uncompleted_question_surfaceTint,
+	outlineVariant = md_theme_uncompleted_question_outlineVariant,
+	scrim = md_theme_uncompleted_question_scrim,
+)
+
 @Composable
 fun AdminTheme(content: @Composable () -> Unit) {
 	MaterialTheme(
 		colorScheme = AdminColorScheme,
+		typography = AppTypography,
+		content = content
+	)
+}
+
+@Composable
+fun UncompletedQuestionTheme(content: @Composable () -> Unit) {
+	MaterialTheme(
+		colorScheme = UncompletedQuestionColorScheme,
+		typography = AppTypography,
+		content = content
+	)
+}
+
+@Composable
+fun CompletedQuestionTheme(content: @Composable () -> Unit) {
+	MaterialTheme(
+		colorScheme = CompletedQuestionColorScheme,
 		typography = AppTypography,
 		content = content
 	)

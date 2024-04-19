@@ -74,7 +74,10 @@ dependencies {
 	ksp("androidx.room:room-compiler:$roomVersion")
 
 	// DataStore
-	implementation("androidx.datastore:datastore-preferences:1.0.0")
-	implementation("androidx.datastore:datastore-preferences-core:1.0.0")
+	implementation("androidx.datastore:datastore-preferences:1.1.0")
+	implementation("androidx.datastore:datastore-preferences-core:1.1.0")
+
+	// Splash Screen API
+	implementation ("androidx.core:core-splashscreen:1.0.1")
 
 }

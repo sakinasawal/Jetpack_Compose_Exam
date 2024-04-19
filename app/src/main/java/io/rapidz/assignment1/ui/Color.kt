@@ -125,3 +125,5 @@ val md_theme_completed_question_inversePrimary = Color(0xFF6ADBAE)
 val md_theme_completed_question_surfaceTint = Color(0xFF006C4E)
 val md_theme_completed_question_outlineVariant = Color(0xFFBFC9C2)
 val md_theme_completed_question_scrim = Color(0xFF000000)
+
+val BackgroundColor = Color(0xFFF6F6F9)

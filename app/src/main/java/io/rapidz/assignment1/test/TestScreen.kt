@@ -1,5 +1,6 @@
 package io.rapidz.assignment1.test
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
@@ -13,68 +14,46 @@ import io.rapidz.assignment1.ui.AppTypography
 import io.rapidz.assignment1.ui.md_theme_default_primaryContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.navigation.NavController
+import com.google.android.material.bottomnavigation.BottomNavigationItemView
 import io.rapidz.assignment1.ui.DefaultTheme
+import kotlinx.coroutines.delay
 
 @Preview
 @Composable
-fun TestScreen(){
+fun TestScreen(navController: NavController? = null){
+
+	val totalTimeMillis = 60 * 1000L // 1 minute in milliseconds
+	val countdownState = remember { mutableLongStateOf(totalTimeMillis) }
+
+	LaunchedEffect(Unit) {
+		while (countdownState.longValue > 0) {
+			delay(1000) // Wait for 1 second
+			countdownState.longValue -= 1000 // Decrement by 1 second
+		}
+	}
+
 	DefaultTheme {
-		Column(
-			modifier = Modifier
-				.fillMaxSize()
-				.background(color = md_theme_default_primaryContainer)
-				.padding(all = spacing_10),
-			verticalArrangement = Arrangement.Top,
-			horizontalAlignment = Alignment.Start
-		) {
-			TextLabel(
-				text = R.string.title_question_1,
-				typographyStyle = AppTypography.titleLarge
-			)
-
-			Spacer(modifier = Modifier.height(spacing_20))
-
-			TextLabel(
-				text = R.string.question_1
-			)
-
-			Spacer(modifier = Modifier.height(spacing_10))
-
-			RadioButtonAnswer()
-		}
-	}
-}
-
-@Composable
-fun RadioButtonAnswer(){
-	val options = listOf("0","18","100","1000++")
-	var selectedOption by remember { mutableStateOf(options[0]) }
-	Column {
-		options.forEach{ option ->
-			Row(
-				modifier = Modifier
-					.padding(all = spacing_4)
-					.height(spacing_24)
-					.selectable(
-						selected = selectedOption == option,
-						onClick = { selectedOption = option }
-					),
-				verticalAlignment = Alignment.CenterVertically
-			){
-				RadioButton(
-					selected = selectedOption == option,
-					onClick = null
-				)
-				Text(
-					text = option,
-					modifier = Modifier.padding(start = spacing_8)
-				)
+		BottomAppBar(
+			countdownMillis = countdownState.longValue,
+			onRightArrowClick = {
+				Log.d("Navigation", "Navigating to testScreen2")
+				navController!!.navigate("test2")
 			}
+		){
+			Question1()
 		}
 	}
 }
 
+@Preview
 @Composable
-fun BottomAppBarQuestion(){
+fun Question1Preview(){
+	Question1()
+}
 
+@Preview
+@Composable
+fun RadioButtonAnswerPreview(){
+	RadioButtonAnswer()
 }

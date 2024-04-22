@@ -12,7 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import io.rapidz.assignment1.admin.AdminScreen
 import io.rapidz.assignment1.candidate.CandidateScreen
 import io.rapidz.assignment1.role.RoleSelectionScreen
-import io.rapidz.assignment1.test.TestScreen
+import io.rapidz.assignment1.test.*
 
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?){
@@ -40,7 +40,10 @@ fun MainApplication(){
 			CandidateScreen(navController)
 		}
 		composable("test"){
-			TestScreen()
+			TestScreen(navController)
+		}
+		composable("test2"){
+			TestScreen2()
 		}
 	}
 }

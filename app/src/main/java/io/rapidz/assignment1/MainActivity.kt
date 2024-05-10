@@ -43,7 +43,13 @@ fun MainApplication(){
 			TestScreen(navController)
 		}
 		composable("test2"){
-			TestScreen2()
+			TestScreen2(navController)
+		}
+		composable("test3"){
+			TestScreen3()
+		}
+		composable("test4"){
+			TestScreen4()
 		}
 	}
 }

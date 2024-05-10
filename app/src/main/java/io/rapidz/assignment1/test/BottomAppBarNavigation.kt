@@ -90,8 +90,10 @@ fun BottomAppBarGeneral() {
 fun BottomAppBar(
 	showCountDownTimer : Boolean = true,
 	countdownMillis : Long = 0L,
+	onLeftDoubleArrowClick : () -> Unit? = {},
 	onLeftArrowClick : () -> Unit? = {},
 	onRightArrowClick : () -> Unit? = {},
+	onRightDoubleArrowClick : () -> Unit? = {},
 	onFloatingButtonClick : () -> Unit? = {},
 	content: @Composable () -> Unit? = {}
 ) {
@@ -99,16 +101,16 @@ fun BottomAppBar(
 		bottomBar = {
 			BottomAppBar(
 				actions = {
-					IconButton(onClick = {}) {
+					IconButton(onClick = { onLeftDoubleArrowClick()}) {
 						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
 					}
-					IconButton(onClick = { onLeftArrowClick}) {
+					IconButton(onClick = { onLeftArrowClick()}) {
 						Icon(Icons.Default.ChevronLeft, contentDescription = null)
 					}
-					IconButton(onClick = { onRightArrowClick}) {
+					IconButton(onClick = { onRightArrowClick()}) {
 						Icon(Icons.Default.ChevronRight, contentDescription = null)
 					}
-					IconButton(onClick = {}) {
+					IconButton(onClick = { onRightDoubleArrowClick()}) {
 						Icon(Icons.Default.KeyboardDoubleArrowRight, null)
 					}
 					if (showCountDownTimer){
@@ -120,7 +122,7 @@ fun BottomAppBar(
 				},
 				floatingActionButton = {
 					FloatingActionButton(
-						onClick = { onFloatingButtonClick },
+						onClick = { onFloatingButtonClick() },
 						elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
 					) {
 						Icon(Icons.Default.DoneAll, null)

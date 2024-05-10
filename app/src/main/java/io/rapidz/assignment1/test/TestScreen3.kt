@@ -1,21 +1,15 @@
 package io.rapidz.assignment1.test
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavController
-import io.rapidz.assignment1.R
-import io.rapidz.assignment1.*
 import io.rapidz.assignment1.ui.*
+import androidx.compose.runtime.*
+import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 
 @Preview
 @Composable
-fun TestScreen2(navController: NavController? = null){
+fun TestScreen3(navController: NavController? = null) {
 	val totalTimeMillis = 60 * 1000L // 1 minute in milliseconds
 	val countdownState = remember { mutableLongStateOf(totalTimeMillis) }
 
@@ -29,21 +23,14 @@ fun TestScreen2(navController: NavController? = null){
 	DefaultTheme {
 		BottomAppBar(
 			countdownMillis = countdownState.longValue,
-			onLeftArrowClick = {
+			onLeftDoubleArrowClick = {
 				navController!!.navigate("test") },
+			onLeftArrowClick = {
+				navController!!.navigate("test2") },
 			onRightArrowClick = {
-				navController!!.navigate("test3")
-			}
+				navController!!.navigate("test4") }
 		){
-			Question2()
+			Question3()
 		}
-	}
-}
-
-@Preview
-@Composable
-fun TestScreen2Preview(){
-	DefaultTheme {
-		Question2()
 	}
 }

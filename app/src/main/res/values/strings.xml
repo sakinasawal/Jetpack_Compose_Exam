@@ -18,4 +18,8 @@
 	<string name="title_question_1">Question 1</string>
 	<string name="question_1">What is your age?</string>
 	<string name="title_question_2">Question 2</string>
+	<string name="question_2">What is your hobby?</string>
+	<string name="title_question_3">Question 3</string>
+	<string name="question_3">What is your name?</string>
+	<string name="title_question_4">Question 4</string>
 </resources>

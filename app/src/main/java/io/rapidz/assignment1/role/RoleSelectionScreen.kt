@@ -59,8 +59,8 @@ fun RoleSelectionScreen(navController: NavController? = null) {
 				AppButton(
 					textRes = R.string.candidate,
 					onClick = {
-						showDialog.value = true
-//						navController!!.navigate("candidate")
+//						 showDialog.value = true
+						 navController!!.navigate("candidate")
 					},
 					modifier = Modifier.fillMaxWidth()
 				)
@@ -84,7 +84,7 @@ private fun ShowAlertDialog(navController: NavController? = null, closeDialog: (
 			messageResId = R.string.message_last_test,
 			msgResId = R.string.candidate_dialog,
 			onPositiveButtonClick = {
-				navController!!.navigate("test")
+				navController!!.navigate("candidate")
 				closeDialog()
 			},
 			onNegativeButtonClick = {

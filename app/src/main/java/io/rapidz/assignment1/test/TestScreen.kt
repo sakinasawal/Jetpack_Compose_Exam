@@ -24,6 +24,9 @@ fun TestScreen(navController: NavController? = null){
 	DefaultTheme {
 		BottomAppBar(
 			countdownMillis = countdownState.longValue,
+			onLeftArrowClick = {
+				navController!!.navigate("candidate")
+			},
 			onRightArrowClick = {
 				navController!!.navigate("test2")
 			}

@@ -1,13 +1,17 @@
 package io.rapidz.assignment1.candidate
 
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import io.rapidz.assignment1.R
@@ -21,24 +25,46 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import io.rapidz.assignment1.data.Candidate
+import io.rapidz.assignment1.viewmodel.CandidateViewModel
 import java.util.regex.Pattern
+import androidx.compose.ui.platform.LocalContext
+import io.rapidz.assignment1.repository.CandidateRepository
+import io.rapidz.assignment1.storage.AppDatabase
+import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModel
+import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModelFactory
+import io.rapidz.assignment1.viewmodel.CandidateViewModelFactory
+import kotlinx.coroutines.launch
 
 @Preview
 @Composable
 fun CandidateScreen(navController: NavController? = null) {
 
-	var name by remember { mutableStateOf("") }
-	var emailAddress by remember { mutableStateOf("") }
+	val context = LocalContext.current
 
+	val candidateDataStoreViewModel: CandidateDataStoreViewModel = viewModel(
+		factory = CandidateDataStoreViewModelFactory(context)
+	)
+
+	val database = remember { AppDatabase.getDatabase(context) }
+	val candidateRepository = remember { CandidateRepository(database.candidateDao()) }
+	val viewModel: CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository))
+
+	val name by candidateDataStoreViewModel.name.collectAsState()
+	val emailAddress by candidateDataStoreViewModel.email.collectAsState()
+	
 	val isRegisterEnable by remember(name, emailAddress) {
 		derivedStateOf {
-			name.isNotBlank() && isValidEmail(emailAddress)
+			name.isNotBlank() && emailAddress.isNotBlank() && isValidEmail(emailAddress)
 		}
 	}
 
 	val focusManager = LocalFocusManager.current
 	val keyboardController = LocalSoftwareKeyboardController.current
+
+	val scope = rememberCoroutineScope()
 
 	DefaultTheme {
 		Column(
@@ -63,13 +89,21 @@ fun CandidateScreen(navController: NavController? = null) {
 
 			InputTextField(
 				value = name,
-				onValueChange = { name = it },
+				onValueChange = {
+					scope.launch {
+						candidateDataStoreViewModel.saveCandidateData(context, it, emailAddress)
+					}
+				},
 				placeholder = stringResource(id = R.string.name)
 			)
 
 			InputTextField(
 				value = emailAddress,
-				onValueChange = { emailAddress = it },
+				onValueChange = {
+					scope.launch {
+						candidateDataStoreViewModel.saveCandidateData(context, name, it)
+					}
+				},
 				placeholder = stringResource(id = R.string.email_address)
 			)
 
@@ -79,6 +113,8 @@ fun CandidateScreen(navController: NavController? = null) {
 				textRes = R.string.register,
 				onClick = {
 					if (isRegisterEnable){
+						val candidate = Candidate(name= name, emailAddress = emailAddress)
+						viewModel.insert(candidate)
 						navController!!.navigate("test")
 					}
 				},
@@ -87,7 +123,6 @@ fun CandidateScreen(navController: NavController? = null) {
 			)
 		}
 	}
-
 }
 
 private fun isValidEmail(email : String) : Boolean {

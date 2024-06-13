@@ -64,15 +64,17 @@ fun AppButton(
 	shape: Shape = ButtonDefaults.shape,
 	colors: ButtonColors = ButtonDefaults.buttonColors(),
 	textColor: Color? = Color.White
-) = Button(
-	onClick = onClick,
-	modifier = modifier,
-	enabled = enabled,
-	shape = shape,
-	colors = colors,
 ) {
-	if (textColor != null) {
-		Text(textRes)
+	Button(
+		onClick = onClick,
+		modifier = modifier,
+		enabled = enabled,
+		shape = shape,
+		colors = colors,
+	) {
+		if (textColor != null) {
+			Text(textRes)
+		}
 	}
 }
 

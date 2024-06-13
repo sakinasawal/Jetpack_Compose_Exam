@@ -14,6 +14,7 @@ import io.rapidz.assignment1.candidate.CandidateScreen
 import io.rapidz.assignment1.role.RoleSelectionScreen
 import io.rapidz.assignment1.test.*
 
+
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?){
 		super.onCreate(savedInstanceState)

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -118,6 +119,35 @@ fun GeneralAlertDialog(
 		dismissButton = {
 			TextButton(onClick = { onNegativeButtonClick() }) {
 				Text(R.string.dialog_no)
+			}
+		}
+	)
+}
+
+@Composable
+fun EndTestAlertDialog(
+	@StringRes titleResId : Int,
+	@StringRes messageResId : Int,
+	onPositiveButtonClick : () -> Unit
+){
+	AlertDialog(
+		onDismissRequest = {},
+		icon = {
+			Icon(Icons.Default.Done, contentDescription = null)
+		},
+		title = { Text(titleResId)},
+		text = {
+			Column(
+				modifier = Modifier
+					.padding(spacing_8)
+			) {
+				Text(messageResId)
+			}
+
+		},
+		confirmButton = {
+			TextButton(onClick = { onPositiveButtonClick() }) {
+				Text(R.string.dialog_ok)
 			}
 		}
 	)

@@ -1,18 +1,14 @@
 package io.rapidz.assignment1.candidate
 
-import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.TextLabel
@@ -54,7 +50,7 @@ fun CandidateScreen(navController: NavController? = null) {
 
 	val name by candidateDataStoreViewModel.name.collectAsState()
 	val emailAddress by candidateDataStoreViewModel.email.collectAsState()
-	
+
 	val isRegisterEnable by remember(name, emailAddress) {
 		derivedStateOf {
 			name.isNotBlank() && emailAddress.isNotBlank() && isValidEmail(emailAddress)
@@ -67,63 +63,85 @@ fun CandidateScreen(navController: NavController? = null) {
 	val scope = rememberCoroutineScope()
 
 	DefaultTheme {
-		Column(
-			modifier = Modifier
-				.fillMaxSize()
-				.background(color = md_theme_default_background)
-				.padding(all = spacing_20)
-				.pointerInput(Unit) {
-					detectTapGestures(onTap = {
-						keyboardController?.hide()
-						focusManager.clearFocus()
-					})
-				},
-			verticalArrangement = Arrangement.spacedBy(spacing_20),
-			horizontalAlignment = Alignment.Start
-		) {
-
-			TextLabel(
-				text = R.string.candidate_registration,
-				typographyStyle = AppTypography.titleLarge
-			)
-
-			InputTextField(
-				value = name,
-				onValueChange = {
-					scope.launch {
-						candidateDataStoreViewModel.saveCandidateData(context, it, emailAddress)
-					}
-				},
-				placeholder = stringResource(id = R.string.name)
-			)
-
-			InputTextField(
-				value = emailAddress,
-				onValueChange = {
-					scope.launch {
-						candidateDataStoreViewModel.saveCandidateData(context, name, it)
-					}
-				},
-				placeholder = stringResource(id = R.string.email_address)
-			)
-
-			Spacer(Modifier.weight(1f))
-
-			AppButton(
-				textRes = R.string.register,
-				onClick = {
-					if (isRegisterEnable){
-						val candidate = Candidate(name= name, emailAddress = emailAddress)
-						viewModel.insert(candidate)
-						navController!!.navigate("test")
-					}
-				},
-				modifier = Modifier.fillMaxWidth(),
-				enabled = isRegisterEnable
-			)
-		}
+		CandidateScreenRegisterForm(
+			name = name,
+			emailAddress = emailAddress,
+			isRegisterEnable = isRegisterEnable,
+			onNameChange = { newName ->
+				scope.launch {
+					candidateDataStoreViewModel.saveCandidateData(context, newName, emailAddress)
+				}
+			},
+			onEmailAddressChange = { newEmailAddress ->
+				scope.launch {
+					candidateDataStoreViewModel.saveCandidateData(context, name, newEmailAddress)
+				}
+			},
+			onRegisterClick = {
+				if (isRegisterEnable){
+					val candidate = Candidate(name= name, emailAddress = emailAddress)
+					viewModel.insert(candidate)
+					navController?.navigate(Screen.Test)
+				}
+			},
+			onBackgroundTap = {
+				keyboardController?.hide()
+				focusManager.clearFocus()
+			}
+		)
 	}
 }
+
+@Composable
+private fun CandidateScreenRegisterForm(
+	name : String,
+	emailAddress : String,
+	isRegisterEnable : Boolean,
+	onNameChange : (String) -> Unit,
+	onEmailAddressChange : (String) -> Unit,
+	onRegisterClick: () -> Unit,
+	onBackgroundTap : () -> Unit
+){
+	Column(
+		modifier = Modifier
+			.fillMaxSize()
+			.background(color = md_theme_default_background)
+			.padding(all = spacing_20)
+			.pointerInput(Unit) {
+				detectTapGestures(onTap = {onBackgroundTap()})
+			},
+		verticalArrangement = Arrangement.spacedBy(spacing_20),
+		horizontalAlignment = Alignment.Start
+	) {
+
+		TextLabel(
+			text = R.string.candidate_registration,
+			typographyStyle = AppTypography.titleLarge
+		)
+
+		InputTextField(
+			value = name,
+			onValueChange = onNameChange,
+			placeholder = stringResource(id = R.string.name)
+		)
+
+		InputTextField(
+			value = emailAddress,
+			onValueChange = onEmailAddressChange,
+			placeholder = stringResource(id = R.string.email_address)
+		)
+
+		Spacer(Modifier.weight(1f))
+
+		AppButton(
+			textRes = R.string.register,
+			onClick = onRegisterClick,
+			modifier = Modifier.fillMaxWidth(),
+			enabled = isRegisterEnable
+		)
+	}
+}
+
 
 private fun isValidEmail(email : String) : Boolean {
 	val emailRegex = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})"

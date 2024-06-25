@@ -3,7 +3,7 @@ package io.rapidz.assignment1.role
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import io.rapidz.assignment1.navigate
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -48,7 +48,7 @@ fun RoleSelectionScreen(navController: NavController? = null) {
 			AdminTheme {
 				AppButton(
 					textRes = R.string.admin,
-					onClick = { navController!!.navigate("admin")  },
+					onClick = {navController!!.navigate(Screen.Admin)},
 					modifier = Modifier.fillMaxWidth()
 				)
 			}
@@ -60,7 +60,7 @@ fun RoleSelectionScreen(navController: NavController? = null) {
 					textRes = R.string.candidate,
 					onClick = {
 //						 showDialog.value = true
-						 navController!!.navigate("candidate")
+						 navController?.navigate(Screen.Candidate)
 					},
 					modifier = Modifier.fillMaxWidth()
 				)
@@ -84,7 +84,7 @@ private fun ShowAlertDialog(navController: NavController? = null, closeDialog: (
 			messageResId = R.string.message_last_test,
 			msgResId = R.string.candidate_dialog,
 			onPositiveButtonClick = {
-				navController!!.navigate("candidate")
+				navController!!.navigate(Screen.Candidate)
 				closeDialog()
 			},
 			onNegativeButtonClick = {

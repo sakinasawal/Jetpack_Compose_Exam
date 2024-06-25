@@ -1,5 +1,7 @@
 package io.rapidz.assignment1.test
 
+import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -25,14 +27,6 @@ fun BottomAppBarPreview() {
 @Composable
 fun BottomAppBarNavigationPreview(){
 	BottomAppBarGeneral()
-}
-
-@Preview
-@Composable
-fun BottomTestingPreview(){
-	DefaultTheme {
-		BottomAppBar()
-	}
 }
 
 @Composable
@@ -141,6 +135,7 @@ fun BottomAppBar(
 	}
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun CountdownText(milliseconds : Long){
 	val minutes = (milliseconds/1000) / 60
@@ -149,4 +144,61 @@ fun CountdownText(milliseconds : Long){
 	Text(
 		text = String.format("%02dm:%02ds", minutes, seconds)
 	)
+}
+
+@Preview
+@Composable
+fun BottomNavigationBarPreview(){
+//	BottomNavBar()
+}
+
+@Composable
+fun BottomNavBar(
+	countdownMillis: Long,
+	currentQuestionIndex : Int,
+	totalQuestions : Int,
+	onLeftDoubleArrowClick: () -> Unit,
+	onLeftArrowClick: () -> Unit,
+	onRightArrowClick: () -> Unit,
+	onRightDoubleArrowClick: () -> Unit,
+	onFloatingButtonClick: () -> Unit,
+	content : @Composable () -> Unit
+){
+	Scaffold(
+		bottomBar = {
+			BottomAppBar(
+				modifier = Modifier.background(
+					if (countdownMillis < 60*1000L) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+				),
+				actions = {
+					IconButton(onClick = { onLeftDoubleArrowClick() }, enabled = currentQuestionIndex > 0) {
+						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
+					}
+					IconButton(onClick = { onLeftArrowClick()}, enabled = currentQuestionIndex > 0) {
+						Icon(Icons.Default.ChevronLeft, contentDescription = null)
+					}
+					IconButton(onClick = { onRightArrowClick() }, enabled = currentQuestionIndex < totalQuestions - 1) {
+						Icon(Icons.Default.ChevronRight, contentDescription = null)
+					}
+					IconButton(onClick = { onRightDoubleArrowClick() }, enabled = currentQuestionIndex < totalQuestions - 1) {
+						Icon(Icons.Default.KeyboardDoubleArrowRight, null)
+					}
+					Spacer(modifier = Modifier.width(spacing_20))
+					CountdownText(milliseconds = countdownMillis)
+				},
+				floatingActionButton = {
+					FloatingActionButton(
+						onClick = { onFloatingButtonClick() },
+						containerColor = if (countdownMillis < 60 * 1000L) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.primary
+					) {
+						Icon(Icons.Default.DoneAll, null)
+					}
+				}
+			)
+		}
+	) { innerPadding ->
+		Box(modifier = Modifier.padding(innerPadding)) {
+			content()
+		}
+	}
 }

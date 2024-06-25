@@ -7,12 +7,21 @@
 	<string name="name">Lee King Hung</string>
 	<string name="email_address">lee.kinghung@rapidz.io</string>
 	<string name="register">Register</string>
+
+	<!-- Dialog -->
 	<string name="test_screen">Test Screen</string>
 	<string name="dialog_yes">Yes</string>
 	<string name="dialog_no">No</string>
+	<string name="dialog_ok">Ok</string>
 	<string name="title_last_test">Last Test</string>
 	<string name="message_last_test">The previous taken test was not completed. Do you want to continue?</string>
 	<string name="candidate_dialog">Candidate: </string>
+	<string name="title_end_test">End of Test</string>
+	<string name="content_end_test">Are you sure you want to end it?</string>
+	<string name="content_end_test_final">You have done the test. Thank you.</string>
+	<string name="title_question_not_complete">Question Not Complete</string>
+	<string name="content_question_not_complete">The current question is not complete, are you sure you
+	want to proceed to the next question?</string>
 
 	<!-- Question -->
 	<string name="title_question_1">Question 1</string>

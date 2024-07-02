@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.rapidz.assignment1.data.Answer
 import io.rapidz.assignment1.data.Candidate
 import io.rapidz.assignment1.repository.CandidateRepository
 import kotlinx.coroutines.launch
@@ -17,6 +18,13 @@ class CandidateViewModel @Inject constructor (
 	fun insert(candidate : Candidate){
 		viewModelScope.launch {
 			candidateRepository.insertCandidate(candidate)
+		}
+	}
+
+	fun saveAnswer(candidateId: Int, questionIndex: Int, answerText: String) {
+		viewModelScope.launch {
+			val answer = Answer(candidateId = candidateId, questionIndex = questionIndex, answerQuestion = answerText)
+			candidateRepository.insertAnswer(answer)
 		}
 	}
 

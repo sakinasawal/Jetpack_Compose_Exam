@@ -168,7 +168,7 @@ fun BottomNavBar(
 		bottomBar = {
 			BottomAppBar(
 				modifier = Modifier.background(
-					if (countdownMillis < 60*1000L) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+					if (countdownMillis < 60*1000L) md_theme_uncompleted_question_error else md_theme_uncompleted_question_primary
 				),
 				actions = {
 					IconButton(onClick = { onLeftDoubleArrowClick() }, enabled = currentQuestionIndex > 0) {
@@ -188,8 +188,7 @@ fun BottomNavBar(
 				},
 				floatingActionButton = {
 					FloatingActionButton(
-						onClick = { onFloatingButtonClick() },
-						containerColor = if (countdownMillis < 60 * 1000L) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.primary
+						onClick = { onFloatingButtonClick() }
 					) {
 						Icon(Icons.Default.DoneAll, null)
 					}

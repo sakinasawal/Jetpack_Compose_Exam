@@ -2,15 +2,19 @@ package io.rapidz.assignment1.test
 
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.rapidz.assignment1.EndTestAlertDialog
 import io.rapidz.assignment1.GeneralAlertDialog
 import io.rapidz.assignment1.R
-import io.rapidz.assignment1.Screen
-import io.rapidz.assignment1.navigate
+import io.rapidz.assignment1.repository.CandidateRepository
+import io.rapidz.assignment1.storage.AppDatabase
+import io.rapidz.assignment1.storage.DataStoreManager
 import io.rapidz.assignment1.ui.DefaultTheme
 import io.rapidz.assignment1.ui.*
-import io.rapidz.assignment1.ui.RadioButtonAnswer
+import io.rapidz.assignment1.viewmodel.CandidateViewModel
+import io.rapidz.assignment1.viewmodel.CandidateViewModelFactory
 import kotlinx.coroutines.delay
 
 @Preview
@@ -18,21 +22,27 @@ import kotlinx.coroutines.delay
 fun TestScreenBottomNav(
 	navController: NavController? = null
 ){
-	val totalTimeMillis = 60 * 1000L // 1 minute in milliseconds
+	val context = LocalContext.current
+	val database = remember { AppDatabase.getDatabase(context) }
+	val candidateRepository = remember { CandidateRepository(answerDao = database.answerDao()) }
+	val viewModel : CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository))
+
+	val totalTimeMillis = 2*60 * 1000L // 5 minute in milliseconds
 	val countdownState = remember { mutableStateOf(totalTimeMillis) }
 	val currentQuestionIndex = remember { mutableStateOf(0) }
+	val answerText = remember { mutableStateOf("") }
 
 	LaunchedEffect(Unit) {
 		while (countdownState.value > 0) {
 			delay(1000) // Wait for 1 second
 			countdownState.value -= 1000 // Decrement by 1 second
 		}
+
+
 	}
 
 	SideEffect {
-		// Example of saving an answer
-//		val answer = Answer(userId = userId, questionId = currentQuestionIndex.value, answer = "Example Answer")
-//		viewModel.insertAnswer(answer)
+		// Saving an answer
 	}
 
 	// List of questions
@@ -65,13 +75,8 @@ private fun QuestionNotCompleteDialog(navController: NavController? = null){
 		GeneralAlertDialog(
 			titleResId = R.string.title_question_not_complete,
 			messageResId = R.string.content_question_not_complete,
-			onPositiveButtonClick = {
-				navController!!.navigate(Screen.Candidate)
-//				closeDialog()
-			},
-			onNegativeButtonClick = {
-//				closeDialog()
-			}
+			onPositiveButtonClick ={},
+			onNegativeButtonClick = {}
 		)
 	}
 }
@@ -83,13 +88,8 @@ private fun QuestionNotCompleteYetDialog(navController: NavController? = null){
 		GeneralAlertDialog(
 			titleResId = R.string.title_end_test,
 			messageResId = R.string.content_end_test,
-			onPositiveButtonClick = {
-				navController!!.navigate(Screen.Candidate)
-//				closeDialog()
-			},
-			onNegativeButtonClick = {
-//				closeDialog()
-			}
+			onPositiveButtonClick = {},
+			onNegativeButtonClick = {}
 		)
 	}
 }
@@ -101,10 +101,14 @@ private fun EndOfTestDialog(navController: NavController? = null){
 		EndTestAlertDialog(
 			titleResId = R.string.title_end_test,
 			messageResId = R.string.content_end_test_final,
-			onPositiveButtonClick = {
-				navController!!.navigate(Screen.Candidate)
-//				closeDialog()
-			}
+			onPositiveButtonClick = {}
 		)
 	}
 }
+
+// change bottom bar color
+//val themeContent: @Composable (@Composable () -> Unit) -> Unit = if (countdownState.value < 60 * 1000) {
+//		{ UncompletedQuestionTheme(it) }
+//	} else {
+//		{ DefaultTheme(it) }
+//	}

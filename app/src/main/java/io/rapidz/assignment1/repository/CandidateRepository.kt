@@ -15,11 +15,11 @@ class CandidateRepository @Inject constructor (
 		candidateDao!!.insert(candidate)
 	}
 
-	suspend fun getCandidateById(id: Int): Candidate? {
-		return candidateDao!!.getCandidateById(id)
+	suspend fun saveAnswer(answer: Answer) {
+		answerDao?.insert(answer)
 	}
 
-	suspend fun insertAnswer(answer: Answer){
-		answerDao!!.insertAnswer(answer)
+	suspend fun getAnswersForCandidate(candidateId: Long): List<Answer> {
+		return answerDao!!.getAnswersForCandidate(candidateId)
 	}
 }

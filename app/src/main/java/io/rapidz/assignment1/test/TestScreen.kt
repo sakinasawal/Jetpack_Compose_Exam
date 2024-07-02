@@ -22,23 +22,15 @@ import kotlinx.coroutines.delay
 fun TestScreenBottomNav(
 	navController: NavController? = null
 ){
-	val context = LocalContext.current
-	val database = remember { AppDatabase.getDatabase(context) }
-	val candidateRepository = remember { CandidateRepository(answerDao = database.answerDao()) }
-	val viewModel : CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository))
-
 	val totalTimeMillis = 2*60 * 1000L // 5 minute in milliseconds
 	val countdownState = remember { mutableStateOf(totalTimeMillis) }
 	val currentQuestionIndex = remember { mutableStateOf(0) }
-	val answerText = remember { mutableStateOf("") }
 
 	LaunchedEffect(Unit) {
 		while (countdownState.value > 0) {
 			delay(1000) // Wait for 1 second
 			countdownState.value -= 1000 // Decrement by 1 second
 		}
-
-
 	}
 
 	SideEffect {

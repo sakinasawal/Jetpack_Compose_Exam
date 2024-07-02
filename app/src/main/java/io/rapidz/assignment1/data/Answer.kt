@@ -5,15 +5,20 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "answer",
-	foreignKeys = [ForeignKey(entity = Candidate::class, parentColumns = ["id"], childColumns = ["candidateId"])],
-	indices = [Index(value=["candidateId"])]
+@Entity(
+	tableName = "answer",
+	foreignKeys = [ForeignKey(
+		entity = Candidate::class,
+		parentColumns = ["id"],
+		childColumns = ["candidateId"],
+		onDelete = ForeignKey.CASCADE
+	)],
+	indices = [Index(value = ["candidateId"])]
 )
 
 data class Answer(
-	@PrimaryKey(autoGenerate = true)
-	val id : Int = 0,
-	val candidateId : Int,
-	val questionIndex : Int,
-	val answerQuestion : String
+	@PrimaryKey(autoGenerate = true) val id: Long = 0,
+	val candidateId: Long,
+	val questionIndex: Int,
+	val answer: String
 )

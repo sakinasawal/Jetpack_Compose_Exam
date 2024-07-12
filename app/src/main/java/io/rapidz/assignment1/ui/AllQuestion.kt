@@ -26,18 +26,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import io.rapidz.assignment1.R
-import io.rapidz.assignment1.TextLabel
-import io.rapidz.assignment1.spacing_1
-import io.rapidz.assignment1.spacing_10
-import io.rapidz.assignment1.spacing_20
-import io.rapidz.assignment1.spacing_24
-import io.rapidz.assignment1.spacing_4
-import io.rapidz.assignment1.spacing_8
+import io.rapidz.assignment1.*
+import io.rapidz.assignment1.viewmodel.CandidateViewModel
 
-@Preview
 @Composable
-fun Question1(){
+fun Question1(
+	viewModel: CandidateViewModel
+){
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
@@ -59,12 +54,15 @@ fun Question1(){
 
 		Spacer(modifier = Modifier.height(spacing_10))
 
-		RadioButtonAnswer()
+		RadioButtonAnswer(1, viewModel)
 	}
 }
 
 @Composable
-fun RadioButtonAnswer(){
+fun RadioButtonAnswer(
+	questionIndex: Int,
+	viewModel: CandidateViewModel
+){
 	val options = listOf("0","18","100","1000++")
 	var selectedOption by remember { mutableStateOf(options[0]) }
 	Column {
@@ -75,7 +73,10 @@ fun RadioButtonAnswer(){
 					.height(spacing_24)
 					.selectable(
 						selected = selectedOption == option,
-						onClick = { selectedOption = option }
+						onClick = {
+							selectedOption = option
+							viewModel.saveAnswer(questionIndex, selectedOption)
+						}
 					),
 				verticalAlignment = Alignment.CenterVertically
 			){
@@ -115,12 +116,14 @@ fun Question2() {
 
 		Spacer(modifier = Modifier.height(spacing_10))
 
-		CheckBoxAnswer()
+		CheckBoxAnswer(2)
 	}
 }
 
 @Composable
-fun CheckBoxAnswer(){
+fun CheckBoxAnswer(
+	questionIndex: Int
+){
 	val activities = listOf("Sleep", "Lay down", "Movie", "Eat")
 	val checkedList = remember { mutableStateListOf<Boolean>() }
 

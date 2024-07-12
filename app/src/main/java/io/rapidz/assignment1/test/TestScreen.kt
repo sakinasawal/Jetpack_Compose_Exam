@@ -8,9 +8,9 @@ import androidx.navigation.NavController
 import io.rapidz.assignment1.EndTestAlertDialog
 import io.rapidz.assignment1.GeneralAlertDialog
 import io.rapidz.assignment1.R
+import io.rapidz.assignment1.repository.AnswerRepository
 import io.rapidz.assignment1.repository.CandidateRepository
 import io.rapidz.assignment1.storage.AppDatabase
-import io.rapidz.assignment1.storage.DataStoreManager
 import io.rapidz.assignment1.ui.DefaultTheme
 import io.rapidz.assignment1.ui.*
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
@@ -22,6 +22,13 @@ import kotlinx.coroutines.delay
 fun TestScreenBottomNav(
 	navController: NavController? = null
 ){
+	val context = LocalContext.current
+
+	val database = remember { AppDatabase.getDatabase(context) }
+	val candidateRepository = remember { CandidateRepository(database.candidateDao()) }
+	val answerRepository = remember { AnswerRepository(database.answerDao()) }
+	val viewModel: CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository, answerRepository))
+
 	val totalTimeMillis = 2*60 * 1000L // 5 minute in milliseconds
 	val countdownState = remember { mutableStateOf(totalTimeMillis) }
 	val currentQuestionIndex = remember { mutableStateOf(0) }
@@ -34,12 +41,15 @@ fun TestScreenBottomNav(
 	}
 
 	SideEffect {
-		// Saving an answer
+		val answer = viewModel.answers.find { it.questionIndex == currentQuestionIndex.value }
+		if (answer != null) {
+			viewModel.saveAnswer(answer.questionIndex, answer.answer)
+		}
 	}
 
 	// List of questions
 	val questions = listOf<@Composable () -> Unit>(
-		{ Question1() },
+		{ Question1(viewModel) },
 		{ Question2() },
 		{ Question3() }
 	)

@@ -11,6 +11,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.scopes.ActivityRetainedScoped
+import io.rapidz.assignment1.repository.AnswerRepository
 import io.rapidz.assignment1.repository.CandidateRepository
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
 import kotlinx.coroutines.flow.Flow
@@ -50,8 +51,9 @@ object CandidateModule {
 	@Provides
 	@ActivityRetainedScoped
 	fun provideCandidateViewModel(
-		candidateRepository: CandidateRepository
+		candidateRepository: CandidateRepository,
+		answerRepository: AnswerRepository
 	): CandidateViewModel {
-		return CandidateViewModel(candidateRepository)
+		return CandidateViewModel(candidateRepository, answerRepository)
 	}
 }

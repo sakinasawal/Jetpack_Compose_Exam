@@ -15,7 +15,6 @@ import androidx.room.PrimaryKey
 	)],
 	indices = [Index(value = ["candidateId"])]
 )
-
 data class Answer(
 	@PrimaryKey(autoGenerate = true) val id: Long = 0,
 	val candidateId: Long,

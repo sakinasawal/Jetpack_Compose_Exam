@@ -1,20 +1,30 @@
 package io.rapidz.assignment1.test
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.rapidz.assignment1.EndTestAlertDialog
 import io.rapidz.assignment1.GeneralAlertDialog
 import io.rapidz.assignment1.R
-import io.rapidz.assignment1.repository.AnswerRepository
+import io.rapidz.assignment1.TextLabel
 import io.rapidz.assignment1.repository.CandidateRepository
+import io.rapidz.assignment1.spacing_10
 import io.rapidz.assignment1.storage.AppDatabase
 import io.rapidz.assignment1.ui.DefaultTheme
 import io.rapidz.assignment1.ui.*
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
 import io.rapidz.assignment1.viewmodel.CandidateViewModelFactory
+import io.rapidz.assignment1.viewmodel.TestViewModel
 import kotlinx.coroutines.delay
 
 @Preview
@@ -22,52 +32,10 @@ import kotlinx.coroutines.delay
 fun TestScreenBottomNav(
 	navController: NavController? = null
 ){
-	val context = LocalContext.current
+	val testViewModel: TestViewModel = viewModel()
+	val questions = testViewModel.questions
 
-	val database = remember { AppDatabase.getDatabase(context) }
-	val candidateRepository = remember { CandidateRepository(database.candidateDao()) }
-	val answerRepository = remember { AnswerRepository(database.answerDao()) }
-	val viewModel: CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository, answerRepository))
 
-	val totalTimeMillis = 2*60 * 1000L // 5 minute in milliseconds
-	val countdownState = remember { mutableStateOf(totalTimeMillis) }
-	val currentQuestionIndex = remember { mutableStateOf(0) }
-
-	LaunchedEffect(Unit) {
-		while (countdownState.value > 0) {
-			delay(1000) // Wait for 1 second
-			countdownState.value -= 1000 // Decrement by 1 second
-		}
-	}
-
-	SideEffect {
-		val answer = viewModel.answers.find { it.questionIndex == currentQuestionIndex.value }
-		if (answer != null) {
-			viewModel.saveAnswer(answer.questionIndex, answer.answer)
-		}
-	}
-
-	// List of questions
-	val questions = listOf<@Composable () -> Unit>(
-		{ Question1(viewModel) },
-		{ Question2() },
-		{ Question3() }
-	)
-
-	DefaultTheme {
-		BottomNavBar(
-			countdownMillis = countdownState.value,
-			currentQuestionIndex = currentQuestionIndex.value,
-			totalQuestions = questions.size,
-			onLeftDoubleArrowClick = { currentQuestionIndex.value = 0 },
-			onLeftArrowClick = { if (currentQuestionIndex.value > 0) currentQuestionIndex.value-- },
-			onRightArrowClick = { if (currentQuestionIndex.value < questions.size - 1) currentQuestionIndex.value++ },
-			onRightDoubleArrowClick = { currentQuestionIndex.value = questions.size - 1 },
-			onFloatingButtonClick = { /*show alert dialog*/ }
-		) {
-			questions[currentQuestionIndex.value]()
-		}
-	}
 }
 
 @Preview
@@ -77,7 +45,7 @@ private fun QuestionNotCompleteDialog(navController: NavController? = null){
 		GeneralAlertDialog(
 			titleResId = R.string.title_question_not_complete,
 			messageResId = R.string.content_question_not_complete,
-			onPositiveButtonClick ={},
+			onPositiveButtonClick = {},
 			onNegativeButtonClick = {}
 		)
 	}

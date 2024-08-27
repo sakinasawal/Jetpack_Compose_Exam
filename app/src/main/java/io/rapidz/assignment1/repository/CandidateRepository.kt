@@ -7,7 +7,7 @@ import javax.inject.Inject
 class CandidateRepository @Inject constructor (
 	private val candidateDao : CandidateDao
 ) {
-	suspend fun insertCandidate(candidate : Candidate){
-		candidateDao.insert(candidate)
+	suspend fun insertCandidate(candidate : Candidate) : Long {
+		return candidateDao.insert(candidate)
 	}
 }

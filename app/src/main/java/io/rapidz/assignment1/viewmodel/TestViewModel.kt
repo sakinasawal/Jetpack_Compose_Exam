@@ -1,0 +1,54 @@
+package io.rapidz.assignment1.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import io.rapidz.assignment1.data.Question
+import io.rapidz.assignment1.data.QuestionType
+import io.rapidz.assignment1.repository.CandidateRepository
+import io.rapidz.assignment1.repository.TestRepository
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class TestViewModel @Inject constructor (private val repository: TestRepository
+) : ViewModel() {
+
+	private val listOfQuestion = listOf(
+		Question(
+			id = 1,
+			questionText = "What is your favorite color?",
+			options = listOf("Red", "Blue", "Green", "Yellow"),
+			questionType = QuestionType.SINGLE_CHOICE
+		),
+		Question(
+			id = 2,
+			questionText = "Which programming languages do you know?",
+			options = listOf("Kotlin", "Java", "Swift", "Python"),
+			questionType = QuestionType.MULTIPLE_CHOICE
+		),
+		Question(
+			id = 3,
+			questionText = "Why do you want to learn programming?",
+			questionType = QuestionType.FREE_TEXT
+		)
+	)
+	val questions: List<Question> = listOfQuestion
+
+	fun saveAnswer(questionId: Int, answer: String) {
+		viewModelScope.launch {
+			repository.saveAnswer(questionId, answer)
+		}
+	}
+}
+
+class TestViewModelFactory(private val testRepository: TestRepository) : ViewModelProvider.Factory {
+	override fun <T : ViewModel> create(modelClass: Class<T>): T {
+		if (modelClass.isAssignableFrom(TestViewModel::class.java)) {
+			@Suppress("UNCHECKED_CAST")
+			return TestViewModel(testRepository) as T
+		}
+		throw IllegalArgumentException("Unknown ViewModel class")
+	}
+}

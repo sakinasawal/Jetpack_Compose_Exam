@@ -27,7 +27,6 @@ import io.rapidz.assignment1.data.Candidate
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
 import java.util.regex.Pattern
 import androidx.compose.ui.platform.LocalContext
-import io.rapidz.assignment1.repository.AnswerRepository
 import io.rapidz.assignment1.repository.CandidateRepository
 import io.rapidz.assignment1.storage.AppDatabase
 import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModel
@@ -47,8 +46,7 @@ fun CandidateScreen(navController: NavController? = null) {
 
 	val database = remember { AppDatabase.getDatabase(context) }
 	val candidateRepository = remember { CandidateRepository(database.candidateDao()) }
-	val answerRepository = remember { AnswerRepository(database.answerDao()) }
-	val viewModel: CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository,answerRepository))
+	val viewModel: CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository))
 
 	val name by candidateDataStoreViewModel.name.collectAsState()
 	val emailAddress by candidateDataStoreViewModel.email.collectAsState()

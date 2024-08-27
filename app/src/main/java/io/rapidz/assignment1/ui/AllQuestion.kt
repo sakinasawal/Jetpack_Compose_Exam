@@ -29,9 +29,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import io.rapidz.assignment1.*
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
 
+@Preview
 @Composable
 fun Question1(
-	viewModel: CandidateViewModel
 ){
 	Column(
 		modifier = Modifier
@@ -54,15 +54,12 @@ fun Question1(
 
 		Spacer(modifier = Modifier.height(spacing_10))
 
-		RadioButtonAnswer(1, viewModel)
+		RadioButtonAnswer()
 	}
 }
 
 @Composable
-fun RadioButtonAnswer(
-	questionIndex: Int,
-	viewModel: CandidateViewModel
-){
+fun RadioButtonAnswer(){
 	val options = listOf("0","18","100","1000++")
 	var selectedOption by remember { mutableStateOf(options[0]) }
 	Column {
@@ -75,7 +72,6 @@ fun RadioButtonAnswer(
 						selected = selectedOption == option,
 						onClick = {
 							selectedOption = option
-							viewModel.saveAnswer(questionIndex, selectedOption)
 						}
 					),
 				verticalAlignment = Alignment.CenterVertically
@@ -116,14 +112,12 @@ fun Question2() {
 
 		Spacer(modifier = Modifier.height(spacing_10))
 
-		CheckBoxAnswer(2)
+		CheckBoxAnswer()
 	}
 }
 
 @Composable
-fun CheckBoxAnswer(
-	questionIndex: Int
-){
+fun CheckBoxAnswer(){
 	val activities = listOf("Sleep", "Lay down", "Movie", "Eat")
 	val checkedList = remember { mutableStateListOf<Boolean>() }
 

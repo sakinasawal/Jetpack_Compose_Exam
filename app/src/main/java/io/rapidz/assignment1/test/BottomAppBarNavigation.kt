@@ -140,9 +140,12 @@ fun BottomAppBar(
 fun CountdownText(milliseconds : Long){
 	val minutes = (milliseconds/1000) / 60
 	val seconds = (milliseconds / 1000) % 60
+	val isCritical = milliseconds <= 60000L
 
 	Text(
-		text = String.format("%02dm:%02ds", minutes, seconds)
+		text = String.format("%02dm:%02ds", minutes, seconds),
+		color = if (isCritical) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+		style = MaterialTheme.typography.bodyLarge
 	)
 }
 
@@ -151,6 +154,7 @@ fun CountdownText(milliseconds : Long){
 fun BottomNavigationBarPreview(){
 //	BottomNavBar()
 }
+
 
 @Composable
 fun BottomNavBar(
@@ -164,12 +168,24 @@ fun BottomNavBar(
 	onFloatingButtonClick: () -> Unit,
 	content : @Composable () -> Unit
 ){
+	val isCountdownCritical = countdownMillis <= 60 * 1000L
+
+	val backgroundColor = if (isCountdownCritical) {
+		MaterialTheme.colorScheme.error
+	} else {
+		MaterialTheme.colorScheme.primary
+	}
+
+	val fabColor = if (isCountdownCritical) {
+		MaterialTheme.colorScheme.onError
+	} else {
+		MaterialTheme.colorScheme.primary
+	}
+
 	Scaffold(
 		bottomBar = {
 			BottomAppBar(
-				modifier = Modifier.background(
-					if (countdownMillis < 60*1000L) md_theme_uncompleted_question_error else md_theme_uncompleted_question_primary
-				),
+				modifier = Modifier.background(backgroundColor),
 				actions = {
 					IconButton(onClick = { onLeftDoubleArrowClick() }, enabled = currentQuestionIndex > 0) {
 						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
@@ -188,7 +204,8 @@ fun BottomNavBar(
 				},
 				floatingActionButton = {
 					FloatingActionButton(
-						onClick = { onFloatingButtonClick() }
+						onClick = { onFloatingButtonClick() },
+						containerColor = fabColor
 					) {
 						Icon(Icons.Default.DoneAll, null)
 					}

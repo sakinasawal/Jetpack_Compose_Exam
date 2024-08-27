@@ -10,7 +10,7 @@ import io.rapidz.assignment1.data.Candidate
 @Dao
 interface CandidateDao{
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
-	suspend fun insert(candidate: Candidate)
+	suspend fun insert(candidate: Candidate) : Long
 
 	@Query("SELECT * FROM candidates WHERE id = :id")
 	suspend fun getCandidateById(id: Int): Candidate?

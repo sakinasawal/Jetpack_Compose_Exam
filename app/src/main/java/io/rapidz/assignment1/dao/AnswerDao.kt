@@ -9,8 +9,8 @@ import io.rapidz.assignment1.data.Answer
 @Dao
 interface AnswerDao {
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
-	suspend fun insert(answer: Answer)
+	suspend fun insertAnswer(answer: Answer)
 
-	@Query("SELECT * FROM Answer WHERE candidateId = :candidateId")
-	suspend fun getAnswersForCandidate(candidateId: Long): List<Answer>
+	@Query("SELECT * FROM answers WHERE questionId = :questionId")
+	suspend fun getAnswer(questionId: Int): Answer?
 }

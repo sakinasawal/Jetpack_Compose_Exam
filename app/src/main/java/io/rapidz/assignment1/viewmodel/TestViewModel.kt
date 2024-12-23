@@ -4,10 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.rapidz.assignment1.data.Answer
 import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.repository.CandidateRepository
 import io.rapidz.assignment1.repository.TestRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -15,7 +18,10 @@ import javax.inject.Inject
 class TestViewModel @Inject constructor (private val repository: TestRepository
 ) : ViewModel() {
 
-	private val listOfQuestion = listOf(
+	private val _answers = MutableStateFlow<List<Answer>>(emptyList())
+	val answers : StateFlow<List<Answer>> = _answers
+
+	val questions: List<Question> = listOf(
 		Question(
 			id = 1,
 			questionText = "What is your favorite color?",
@@ -34,11 +40,18 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 			questionType = QuestionType.FREE_TEXT
 		)
 	)
-	val questions: List<Question> = listOfQuestion
 
 	fun saveAnswer(questionId: Int, answer: String) {
 		viewModelScope.launch {
-			repository.saveAnswer(questionId, answer)
+			repository.saveAnswer(Answer(questionId = questionId, answerText = answer))
+		}
+	}
+
+	init {
+	    viewModelScope.launch {
+			repository.getAnswers().collect{
+				_answers.value = it
+			}
 		}
 	}
 }

@@ -8,5 +8,5 @@ data class Answer(
 	@PrimaryKey(autoGenerate = true)
 	val id: Int = 0,
 	val questionId: Int,
-	val answer: String
+	val answerText: String
 )

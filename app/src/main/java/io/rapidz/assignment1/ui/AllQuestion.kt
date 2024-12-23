@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import io.rapidz.assignment1.*
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
+import io.rapidz.assignment1.viewmodel.TestViewModel
 
 @Preview
 @Composable
@@ -54,13 +55,13 @@ fun Question1(
 
 		Spacer(modifier = Modifier.height(spacing_10))
 
-		RadioButtonAnswer()
+//		RadioButtonAnswer()
 	}
 }
 
 @Composable
-fun RadioButtonAnswer(){
-	val options = listOf("0","18","100","1000++")
+fun RadioButtonAnswer(questionId: Int, viewModel: TestViewModel){
+	val options = listOf("Red", "Blue", "Green", "Yellow")
 	var selectedOption by remember { mutableStateOf(options[0]) }
 	Column {
 		options.forEach{ option ->
@@ -72,6 +73,7 @@ fun RadioButtonAnswer(){
 						selected = selectedOption == option,
 						onClick = {
 							selectedOption = option
+							viewModel.saveAnswer(questionId, selectedOption)
 						}
 					),
 				verticalAlignment = Alignment.CenterVertically
@@ -112,28 +114,30 @@ fun Question2() {
 
 		Spacer(modifier = Modifier.height(spacing_10))
 
-		CheckBoxAnswer()
+//		CheckBoxAnswer()
 	}
 }
 
 @Composable
-fun CheckBoxAnswer(){
-	val activities = listOf("Sleep", "Lay down", "Movie", "Eat")
-	val checkedList = remember { mutableStateListOf<Boolean>() }
+fun CheckBoxAnswer(questionId: Int, viewModel: TestViewModel){
+	val options = listOf("Kotlin", "Java", "Swift", "Python")
+	val checkedStates = remember { mutableStateListOf(false, false, false, false) }
 
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
 	) {
-		activities.forEachIndexed{ index, activity ->
+		options.forEachIndexed{ index, option ->
 			Row(verticalAlignment = Alignment.CenterVertically) {
 				Checkbox(
-					checked = checkedList.getOrNull(index) ?: false,
+					checked = checkedStates[index],
 					onCheckedChange = { isChecked ->
-						checkedList[index] = isChecked
+						checkedStates[index] = isChecked
+						val selectedOptions = options.filterIndexed { i, _ -> checkedStates[i] }
+						viewModel.saveAnswer(questionId, selectedOptions.joinToString(", "))
 					}
 				)
-				Text(text = activity)
+				Text(text = option)
 			}
 		}
 	}
@@ -162,16 +166,19 @@ fun Question3(){
 
 		Spacer(modifier = Modifier.height(spacing_4))
 
-		Textarea()
+//		Textarea()
 	}
 }
 
 @Composable
-fun Textarea() {
-	val text = remember { mutableStateOf("") }
+fun Textarea(questionId: Int, viewModel: TestViewModel) {
+	var text by remember { mutableStateOf("") }
 	TextField(
-		value = text.value,
-		onValueChange = { text.value = it },
+		value = text,
+		onValueChange = {
+			text = it
+			viewModel.saveAnswer(questionId, text)
+		},
 		modifier = Modifier
 			.fillMaxWidth()
 			.fillMaxHeight(0.9f)

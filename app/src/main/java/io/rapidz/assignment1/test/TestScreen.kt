@@ -17,7 +17,9 @@ import io.rapidz.assignment1.EndTestAlertDialog
 import io.rapidz.assignment1.GeneralAlertDialog
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.TextLabel
+import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.repository.CandidateRepository
+import io.rapidz.assignment1.repository.TestRepository
 import io.rapidz.assignment1.spacing_10
 import io.rapidz.assignment1.storage.AppDatabase
 import io.rapidz.assignment1.ui.DefaultTheme
@@ -25,6 +27,7 @@ import io.rapidz.assignment1.ui.*
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
 import io.rapidz.assignment1.viewmodel.CandidateViewModelFactory
 import io.rapidz.assignment1.viewmodel.TestViewModel
+import io.rapidz.assignment1.viewmodel.TestViewModelFactory
 import kotlinx.coroutines.delay
 
 @Preview
@@ -32,11 +35,47 @@ import kotlinx.coroutines.delay
 fun TestScreenBottomNav(
 	navController: NavController? = null
 ){
-	val testViewModel: TestViewModel = viewModel()
-	val questions = testViewModel.questions
+	val context = LocalContext.current
+	val database = remember { AppDatabase.getDatabase(context) }
+	val repository = remember { TestRepository(database.answerDao()) }
+	val viewModel: TestViewModel = viewModel(factory = TestViewModelFactory(repository))
 
+	val questions = viewModel.questions
+	val currentIndex = remember { mutableIntStateOf(0) }
 
-}
+	DefaultTheme {
+		BottomAppBar(
+			onLeftArrowClick = {
+				if (currentIndex.intValue > 0) {
+				currentIndex.intValue--
+			}},
+			onRightArrowClick = {
+				if (currentIndex.intValue < questions.size - 1) {
+					currentIndex.intValue++
+				}
+			},
+			onLeftDoubleArrowClick = {
+				currentIndex.intValue = 0
+				Unit
+			},
+			onRightDoubleArrowClick = {
+				if (currentIndex.intValue < viewModel.questions.size - 1) {
+					currentIndex.intValue += 1
+				}
+			}
+		){
+			Column(modifier = Modifier.fillMaxSize()){
+				val question = questions[currentIndex.intValue]
+					when (question.questionType) {
+						QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(question.id, viewModel)
+						QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(question.id, viewModel)
+						QuestionType.FREE_TEXT -> Textarea(question.id, viewModel)
+					}
+				}
+			}
+		}
+	}
+
 
 @Preview
 @Composable

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.TextLabel
@@ -21,7 +22,7 @@ fun AdminScreen() {
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
-			.background(color = md_theme_admin_onPrimaryContainer)
+			.background(color = Color.White)
 			.padding(spacing_10),
 		verticalArrangement = Arrangement.Top,
 		horizontalAlignment = Alignment.Start
@@ -31,7 +32,6 @@ fun AdminScreen() {
 			typographyStyle = AppTypography.titleLarge
 		)
 	}
-
 }
 
 @Preview

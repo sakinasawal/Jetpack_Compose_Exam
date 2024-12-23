@@ -17,6 +17,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import io.rapidz.assignment1.*
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
@@ -60,7 +62,7 @@ fun Question1(
 }
 
 @Composable
-fun RadioButtonAnswer(questionId: Int, viewModel: TestViewModel){
+fun RadioButtonAnswer(questionId: Int, viewModel: TestViewModel, onAnswerChange: (String) -> Unit){
 	val options = listOf("Red", "Blue", "Green", "Yellow")
 	var selectedOption by remember { mutableStateOf(options[0]) }
 	Column {
@@ -73,7 +75,7 @@ fun RadioButtonAnswer(questionId: Int, viewModel: TestViewModel){
 						selected = selectedOption == option,
 						onClick = {
 							selectedOption = option
-							viewModel.saveAnswer(questionId, selectedOption)
+							onAnswerChange(option)
 						}
 					),
 				verticalAlignment = Alignment.CenterVertically
@@ -119,7 +121,7 @@ fun Question2() {
 }
 
 @Composable
-fun CheckBoxAnswer(questionId: Int, viewModel: TestViewModel){
+fun CheckBoxAnswer(questionId: Int, viewModel: TestViewModel, onAnswerChange: (String) -> Unit){
 	val options = listOf("Kotlin", "Java", "Swift", "Python")
 	val checkedStates = remember { mutableStateListOf(false, false, false, false) }
 
@@ -134,7 +136,7 @@ fun CheckBoxAnswer(questionId: Int, viewModel: TestViewModel){
 					onCheckedChange = { isChecked ->
 						checkedStates[index] = isChecked
 						val selectedOptions = options.filterIndexed { i, _ -> checkedStates[i] }
-						viewModel.saveAnswer(questionId, selectedOptions.joinToString(", "))
+						onAnswerChange(selectedOptions.joinToString(", "))
 					}
 				)
 				Text(text = option)
@@ -171,13 +173,14 @@ fun Question3(){
 }
 
 @Composable
-fun Textarea(questionId: Int, viewModel: TestViewModel) {
+fun Textarea(questionId: Int, viewModel: TestViewModel, onAnswerChange: (String) -> Unit) {
 	var text by remember { mutableStateOf("") }
+
 	TextField(
 		value = text,
 		onValueChange = {
 			text = it
-			viewModel.saveAnswer(questionId, text)
+			onAnswerChange(it)
 		},
 		modifier = Modifier
 			.fillMaxWidth()

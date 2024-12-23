@@ -42,6 +42,19 @@ fun TextLabel(
 }
 
 @Composable
+@SuppressLint("ModifierParameter")
+fun TextLabel1(
+	text : String,
+	modifier : Modifier = Modifier,
+	typographyStyle: TextStyle = LocalTextStyle.current
+){
+	Text(
+		text = text,
+		style = typographyStyle,
+		modifier = modifier)
+}
+
+@Composable
 fun InputTextField(
 	value : String,
 	onValueChange : (String)->Unit,

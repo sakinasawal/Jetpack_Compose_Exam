@@ -3,7 +3,9 @@ package io.rapidz.assignment1.test
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.*
@@ -17,10 +19,14 @@ import io.rapidz.assignment1.EndTestAlertDialog
 import io.rapidz.assignment1.GeneralAlertDialog
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.TextLabel
+import io.rapidz.assignment1.TextLabel1
+import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.repository.CandidateRepository
 import io.rapidz.assignment1.repository.TestRepository
 import io.rapidz.assignment1.spacing_10
+import io.rapidz.assignment1.spacing_20
+import io.rapidz.assignment1.spacing_4
 import io.rapidz.assignment1.storage.AppDatabase
 import io.rapidz.assignment1.ui.DefaultTheme
 import io.rapidz.assignment1.ui.*
@@ -42,41 +48,106 @@ fun TestScreenBottomNav(
 
 	val questions = viewModel.questions
 	val currentIndex = remember { mutableIntStateOf(0) }
+	var currentAnswer by remember { mutableStateOf("") }
 
 	DefaultTheme {
 		BottomAppBar(
 			onLeftArrowClick = {
+				saveAnswerForCurrentQuestion(
+					question = questions[currentIndex.intValue],
+					currentAnswer = currentAnswer,
+					viewModel = viewModel
+				)
+
 				if (currentIndex.intValue > 0) {
-				currentIndex.intValue--
-			}},
+					currentIndex.intValue--
+					currentAnswer = getSavedAnswer(questions[currentIndex.intValue], viewModel)
+				}
+			},
 			onRightArrowClick = {
+				saveAnswerForCurrentQuestion(
+					question = questions[currentIndex.intValue],
+					currentAnswer = currentAnswer,
+					viewModel = viewModel
+				)
+
 				if (currentIndex.intValue < questions.size - 1) {
 					currentIndex.intValue++
+					currentAnswer = getSavedAnswer(questions[currentIndex.intValue], viewModel)
 				}
 			},
 			onLeftDoubleArrowClick = {
+				saveAnswerForCurrentQuestion(
+					question = questions[currentIndex.intValue],
+					currentAnswer = currentAnswer,
+					viewModel = viewModel
+				)
 				currentIndex.intValue = 0
+				currentAnswer = getSavedAnswer(questions[0], viewModel)
 				Unit
 			},
 			onRightDoubleArrowClick = {
-				if (currentIndex.intValue < viewModel.questions.size - 1) {
-					currentIndex.intValue += 1
-				}
+				saveAnswerForCurrentQuestion(
+					question = questions[currentIndex.intValue],
+					currentAnswer = currentAnswer,
+					viewModel = viewModel
+				)
+				currentIndex.intValue = questions.size - 1
+				currentAnswer = getSavedAnswer(questions.last(), viewModel)
+				Unit
 			}
 		){
-			Column(modifier = Modifier.fillMaxSize()){
+			Column(
+				modifier = Modifier
+					.fillMaxSize()
+					.padding(spacing_10)
+			){
 				val question = questions[currentIndex.intValue]
-					when (question.questionType) {
-						QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(question.id, viewModel)
-						QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(question.id, viewModel)
-						QuestionType.FREE_TEXT -> Textarea(question.id, viewModel)
-					}
+
+				TextLabel1(
+					text = "Question " + question.id,
+					typographyStyle = AppTypography.titleLarge
+				)
+
+				Spacer(modifier = Modifier.height(spacing_20))
+
+				TextLabel1(
+					text = question.questionText
+				)
+
+				Spacer(modifier = Modifier.height(spacing_4))
+
+				when (question.questionType) {
+					QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(questionId = question.id, viewModel = viewModel, onAnswerChange = { currentAnswer = it })
+					QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(questionId = question.id, viewModel = viewModel, onAnswerChange = { currentAnswer = it })
+					QuestionType.FREE_TEXT -> Textarea(questionId = question.id, viewModel = viewModel, onAnswerChange = { currentAnswer = it })
 				}
 			}
 		}
 	}
+}
+
+/**
+ * handle data save and get from room db
+ */
+
+fun saveAnswerForCurrentQuestion(
+	question: Question,
+	currentAnswer: String,
+	viewModel: TestViewModel
+) {
+	viewModel.saveAnswer(question.id, currentAnswer)
+}
+
+fun getSavedAnswer(question: Question, viewModel: TestViewModel): String {
+	val answers = viewModel.answers.value
+	return answers.find { it.questionId == question.id }?.answerText ?: ""
+}
 
 
+/**
+ * Handle dialog if question is answered or not
+ */
 @Preview
 @Composable
 private fun QuestionNotCompleteDialog(navController: NavController? = null){

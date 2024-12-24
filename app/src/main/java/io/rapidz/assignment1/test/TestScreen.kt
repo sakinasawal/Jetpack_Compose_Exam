@@ -1,12 +1,20 @@
 package io.rapidz.assignment1.test
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,23 +26,23 @@ import androidx.navigation.NavController
 import io.rapidz.assignment1.EndTestAlertDialog
 import io.rapidz.assignment1.GeneralAlertDialog
 import io.rapidz.assignment1.R
-import io.rapidz.assignment1.TextLabel
+import io.rapidz.assignment1.Screen
 import io.rapidz.assignment1.TextLabel1
 import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
-import io.rapidz.assignment1.repository.CandidateRepository
+import io.rapidz.assignment1.navigate
 import io.rapidz.assignment1.repository.TestRepository
+import io.rapidz.assignment1.spacing_1
 import io.rapidz.assignment1.spacing_10
 import io.rapidz.assignment1.spacing_20
+import io.rapidz.assignment1.spacing_24
 import io.rapidz.assignment1.spacing_4
+import io.rapidz.assignment1.spacing_8
 import io.rapidz.assignment1.storage.AppDatabase
 import io.rapidz.assignment1.ui.DefaultTheme
 import io.rapidz.assignment1.ui.*
-import io.rapidz.assignment1.viewmodel.CandidateViewModel
-import io.rapidz.assignment1.viewmodel.CandidateViewModelFactory
 import io.rapidz.assignment1.viewmodel.TestViewModel
 import io.rapidz.assignment1.viewmodel.TestViewModelFactory
-import kotlinx.coroutines.delay
 
 @Preview
 @Composable
@@ -49,8 +57,13 @@ fun TestScreenBottomNav(
 	val questions = viewModel.questions
 	val currentIndex = remember { mutableIntStateOf(0) }
 	var currentAnswer by remember { mutableStateOf("") }
+	var showDialog by remember { mutableStateOf(false) }
 
 	DefaultTheme {
+		if (showDialog) {
+			EndOfTestDialog(navController = navController)
+		}
+
 		BottomAppBar(
 			onLeftArrowClick = {
 				saveAnswerForCurrentQuestion(
@@ -59,7 +72,7 @@ fun TestScreenBottomNav(
 					viewModel = viewModel
 				)
 
-				if (currentIndex.intValue > 0) {
+				 if (currentIndex.intValue > 0) {
 					currentIndex.intValue--
 					currentAnswer = getSavedAnswer(questions[currentIndex.intValue], viewModel)
 				}
@@ -71,7 +84,9 @@ fun TestScreenBottomNav(
 					viewModel = viewModel
 				)
 
-				if (currentIndex.intValue < questions.size - 1) {
+				if(currentIndex.intValue == questions.size - 1){
+					showDialog = true
+				} else if (currentIndex.intValue < questions.size - 1) {
 					currentIndex.intValue++
 					currentAnswer = getSavedAnswer(questions[currentIndex.intValue], viewModel)
 				}
@@ -100,7 +115,8 @@ fun TestScreenBottomNav(
 			Column(
 				modifier = Modifier
 					.fillMaxSize()
-					.padding(spacing_10)
+					.background(color = md_theme_default_primaryContainer)
+					.padding(spacing_20)
 			){
 				val question = questions[currentIndex.intValue]
 
@@ -118,9 +134,9 @@ fun TestScreenBottomNav(
 				Spacer(modifier = Modifier.height(spacing_4))
 
 				when (question.questionType) {
-					QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(questionId = question.id, viewModel = viewModel, onAnswerChange = { currentAnswer = it })
-					QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(questionId = question.id, viewModel = viewModel, onAnswerChange = { currentAnswer = it })
-					QuestionType.FREE_TEXT -> Textarea(questionId = question.id, viewModel = viewModel, onAnswerChange = { currentAnswer = it })
+					QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(options = question.options, onAnswerChange = { currentAnswer = it })
+					QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(options = question.options, onAnswerChange = { currentAnswer = it })
+					QuestionType.FREE_TEXT -> Textarea(onAnswerChange = { currentAnswer = it })
 				}
 			}
 		}
@@ -128,7 +144,82 @@ fun TestScreenBottomNav(
 }
 
 /**
- * handle data save and get from room db
+ * List of answers (3 types)
+ */
+@Composable
+fun RadioButtonAnswer(options: List<String>, onAnswerChange: (String) -> Unit){
+	var selectedOption by remember { mutableStateOf(options[0]) }
+	Column {
+		options.forEach{ option ->
+			Row(
+				modifier = Modifier
+					.padding(all = spacing_4)
+					.height(spacing_24)
+					.selectable(
+						selected = selectedOption == option,
+						onClick = {
+							selectedOption = option
+							onAnswerChange(option)
+						}
+					),
+				verticalAlignment = Alignment.CenterVertically
+			){
+				RadioButton(
+					selected = selectedOption == option,
+					onClick = null
+				)
+				Text(
+					text = option,
+					modifier = Modifier.padding(start = spacing_8)
+				)
+			}
+		}
+	}
+}
+
+@Composable
+fun CheckBoxAnswer(options: List<String>, onAnswerChange: (String) -> Unit){
+	val checkedStates = remember { mutableStateListOf(false, false, false, false) }
+	Column(
+		modifier = Modifier
+			.fillMaxSize()
+	) {
+		options.forEachIndexed{ index, option ->
+			Row(verticalAlignment = Alignment.CenterVertically) {
+				Checkbox(
+					checked = checkedStates[index],
+					onCheckedChange = { isChecked ->
+						checkedStates[index] = isChecked
+						val selectedOptions = options.filterIndexed { i, _ -> checkedStates[i] }
+						onAnswerChange(selectedOptions.joinToString(", "))
+					}
+				)
+				Text(text = option)
+			}
+		}
+	}
+}
+
+@Composable
+fun Textarea(onAnswerChange: (String) -> Unit) {
+	var text by remember { mutableStateOf("") }
+
+	TextField(
+		value = text,
+		onValueChange = {
+			text = it
+			onAnswerChange(it)
+		},
+		modifier = Modifier
+			.fillMaxWidth()
+			.fillMaxHeight(0.9f)
+			.padding(spacing_4)
+			.border(width = spacing_1, color = Color.Black)
+	)
+}
+
+/**
+ * Handle data save and get from room db
  */
 
 fun saveAnswerForCurrentQuestion(
@@ -163,7 +254,7 @@ private fun QuestionNotCompleteDialog(navController: NavController? = null){
 
 @Preview
 @Composable
-private fun QuestionNotCompleteYetDialog(navController: NavController? = null){
+private fun QuestionCompleteDialog(navController: NavController? = null){
 	CompletedQuestionTheme {
 		GeneralAlertDialog(
 			titleResId = R.string.title_end_test,
@@ -181,7 +272,9 @@ private fun EndOfTestDialog(navController: NavController? = null){
 		EndTestAlertDialog(
 			titleResId = R.string.title_end_test,
 			messageResId = R.string.content_end_test_final,
-			onPositiveButtonClick = {}
+			onPositiveButtonClick = {
+				navController?.navigate(Screen.Role)
+			}
 		)
 	}
 }

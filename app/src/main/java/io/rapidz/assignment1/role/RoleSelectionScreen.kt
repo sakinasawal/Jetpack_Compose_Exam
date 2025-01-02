@@ -60,7 +60,7 @@ fun RoleSelectionScreen(navController: NavController? = null) {
 					textRes = R.string.candidate,
 					onClick = {
 //						 showDialog.value = true
-						 navController?.navigate(Screen.Candidate)
+						 navController?.navigate(Screen.Test)
 					},
 					modifier = Modifier.fillMaxWidth()
 				)

@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.rapidz.assignment1.EndTestAlertDialog
@@ -57,50 +58,36 @@ fun TestScreenBottomNav(
 	val questions = viewModel.questions
 	val currentIndex = remember { mutableIntStateOf(0) }
 	var currentAnswer by remember { mutableStateOf("") }
-	var showDialog by remember { mutableStateOf(false) }
+	var dialogType by remember { mutableStateOf<DialogType?>(null) }
 
 	DefaultTheme {
-		if (showDialog) {
-			EndOfTestDialog(navController = navController)
-		}
-
 		BottomAppBar(
 			onLeftArrowClick = {
-				saveAnswerForCurrentQuestion(
-					question = questions[currentIndex.intValue],
-					currentAnswer = currentAnswer,
-					viewModel = viewModel
-				)
-
-				 if (currentIndex.intValue > 0) {
+				if (!isQuestionComplete(questions[currentIndex.intValue], currentAnswer)){
+					dialogType = DialogType.QUESTION_NOT_COMPLETE
+				} else if (currentIndex.intValue > 0) {
+					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, viewModel)
 					currentIndex.intValue--
 					currentAnswer = getSavedAnswer(questions[currentIndex.intValue], viewModel)
 				}
 			},
 			onRightArrowClick = {
-				saveAnswerForCurrentQuestion(
-					question = questions[currentIndex.intValue],
-					currentAnswer = currentAnswer,
-					viewModel = viewModel
-				)
-
-				if(currentIndex.intValue == questions.size - 1){
-					showDialog = true
-				} else if (currentIndex.intValue < questions.size - 1) {
-					currentIndex.intValue++
-					currentAnswer = getSavedAnswer(questions[currentIndex.intValue], viewModel)
+				if (!isQuestionComplete(questions[currentIndex.intValue], currentAnswer)) {
+					dialogType = DialogType.QUESTION_NOT_COMPLETE
+				} else {
+					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, viewModel)
+					if (currentIndex.intValue == questions.size - 1) {
+						dialogType = DialogType.ALL_QUESTIONS_COMPLETE
+					} else {
+						currentIndex.intValue++
+						currentAnswer = getSavedAnswer(questions[currentIndex.intValue], viewModel)
+					}
 				}
 			},
 			onLeftDoubleArrowClick = {
-				saveAnswerForCurrentQuestion(
-					question = questions[currentIndex.intValue],
-					currentAnswer = currentAnswer,
-					viewModel = viewModel
-				)
 				currentIndex.intValue = 0
 				currentAnswer = getSavedAnswer(questions[0], viewModel)
 				Unit
-				//testing
 			},
 			onRightDoubleArrowClick = {
 				saveAnswerForCurrentQuestion(
@@ -135,11 +122,31 @@ fun TestScreenBottomNav(
 				Spacer(modifier = Modifier.height(spacing_4))
 
 				when (question.questionType) {
-					QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(options = question.options, onAnswerChange = { currentAnswer = it })
-					QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(options = question.options, onAnswerChange = { currentAnswer = it })
+					QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(
+						options = question.options,
+						currentAnswer = currentAnswer,
+						onAnswerChange = { currentAnswer = it })
+					QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(
+						options = question.options,
+						currentAnswer = currentAnswer,
+						onAnswerChange = { currentAnswer = it })
 					QuestionType.FREE_TEXT -> Textarea(onAnswerChange = { currentAnswer = it })
 				}
 			}
+		}
+	}
+
+	dialogType?.let {
+		when (it) {
+			DialogType.QUESTION_NOT_COMPLETE -> QuestionNotCompleteDialog(onDismiss = { dialogType = null })
+			DialogType.ALL_QUESTIONS_NOT_COMPLETE -> AllQuestionNotCompleteDialog(
+				onDismiss = { dialogType = null },
+				onEndTest = { navController?.navigate(Screen.Role) }
+			)
+			DialogType.ALL_QUESTIONS_COMPLETE -> AllQuestionCompleteDialog(
+				onDismiss = { dialogType = null },
+				onEndTest = { navController?.navigate(Screen.Role) }
+			)
 		}
 	}
 }
@@ -148,8 +155,8 @@ fun TestScreenBottomNav(
  * List of answers (3 types)
  */
 @Composable
-fun RadioButtonAnswer(options: List<String>, onAnswerChange: (String) -> Unit){
-	var selectedOption by remember { mutableStateOf(options[0]) }
+fun RadioButtonAnswer(options: List<String>, currentAnswer: String, onAnswerChange: (String) -> Unit){
+	var selectedOption by remember(currentAnswer) { mutableStateOf(currentAnswer) }
 	Column {
 		options.forEach{ option ->
 			Row(
@@ -179,11 +186,14 @@ fun RadioButtonAnswer(options: List<String>, onAnswerChange: (String) -> Unit){
 }
 
 @Composable
-fun CheckBoxAnswer(options: List<String>, onAnswerChange: (String) -> Unit){
-	val checkedStates = remember { mutableStateListOf(false, false, false, false) }
+fun CheckBoxAnswer(options: List<String>, currentAnswer: String, onAnswerChange: (String) -> Unit){
+	val initialCheckedStates = remember(currentAnswer) {
+		options.map { currentAnswer.split(", ").contains(it) }
+	}
+	val checkedStates = remember { mutableStateListOf(*initialCheckedStates.toTypedArray()) }
+
 	Column(
-		modifier = Modifier
-			.fillMaxSize()
+		modifier = Modifier.fillMaxSize()
 	) {
 		options.forEachIndexed{ index, option ->
 			Row(verticalAlignment = Alignment.CenterVertically) {
@@ -236,32 +246,48 @@ fun getSavedAnswer(question: Question, viewModel: TestViewModel): String {
 	return answers.find { it.questionId == question.id }?.answerText ?: ""
 }
 
-
 /**
  * Handle dialog if question is answered or not
  */
-@Preview
+
 @Composable
-private fun QuestionNotCompleteDialog(navController: NavController? = null){
+private fun QuestionNotCompleteDialog(onDismiss: () -> Unit) {
 	UncompletedQuestionTheme {
 		GeneralAlertDialog(
 			titleResId = R.string.title_question_not_complete,
 			messageResId = R.string.content_question_not_complete,
-			onPositiveButtonClick = {},
-			onNegativeButtonClick = {}
+			onPositiveButtonClick = { onDismiss() },
+			onNegativeButtonClick = { onDismiss() }
 		)
 	}
 }
 
-@Preview
 @Composable
-private fun QuestionCompleteDialog(navController: NavController? = null){
+private fun AllQuestionCompleteDialog(
+	onDismiss: () -> Unit,
+	onEndTest: () -> Unit
+){
 	CompletedQuestionTheme {
 		GeneralAlertDialog(
 			titleResId = R.string.title_end_test,
 			messageResId = R.string.content_end_test,
-			onPositiveButtonClick = {},
-			onNegativeButtonClick = {}
+			onPositiveButtonClick = { onEndTest() },
+			onNegativeButtonClick = { onDismiss() }
+		)
+	}
+}
+
+@Composable
+private fun AllQuestionNotCompleteDialog(
+	onDismiss: () -> Unit,
+	onEndTest: () -> Unit
+) {
+	UncompletedQuestionTheme {
+		GeneralAlertDialog(
+			titleResId = R.string.title_question_not_complete,
+			messageResId = R.string.content_all_question_not_complete,
+			onPositiveButtonClick = { onEndTest() },
+			onNegativeButtonClick = { onDismiss() }
 		)
 	}
 }
@@ -277,6 +303,20 @@ private fun EndOfTestDialog(navController: NavController? = null){
 				navController?.navigate(Screen.Role)
 			}
 		)
+	}
+}
+
+enum class DialogType {
+	QUESTION_NOT_COMPLETE,
+	ALL_QUESTIONS_NOT_COMPLETE,
+	ALL_QUESTIONS_COMPLETE
+}
+
+fun isQuestionComplete(question: Question, currentAnswer: String): Boolean {
+	return when (question.questionType) {
+		QuestionType.SINGLE_CHOICE -> currentAnswer.isNotEmpty()
+		QuestionType.MULTIPLE_CHOICE -> currentAnswer.isNotEmpty()
+		QuestionType.FREE_TEXT -> currentAnswer.isNotBlank()
 	}
 }
 

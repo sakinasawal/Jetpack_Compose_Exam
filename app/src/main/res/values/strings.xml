@@ -21,6 +21,7 @@
 	<string name="content_end_test_final">You have done the test. Thank you.</string>
 	<string name="title_question_not_complete">Question Not Complete</string>
 	<string name="content_question_not_complete">The current question is not complete, are you sure you want to proceed to the next question?</string>
+	<string name="content_all_question_not_complete">The test is not complete, are you sure you want to end it?</string>
 
 	<!-- Question -->
 	<string name="title_question_1">Question 1</string>

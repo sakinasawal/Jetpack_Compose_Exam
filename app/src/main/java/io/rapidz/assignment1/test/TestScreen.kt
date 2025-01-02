@@ -100,6 +100,7 @@ fun TestScreenBottomNav(
 				currentIndex.intValue = 0
 				currentAnswer = getSavedAnswer(questions[0], viewModel)
 				Unit
+				//testing
 			},
 			onRightDoubleArrowClick = {
 				saveAnswerForCurrentQuestion(

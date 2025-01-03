@@ -83,9 +83,10 @@ fun CandidateScreen(navController: NavController? = null) {
 			onRegisterClick = {
 				if (isRegisterEnable){
 					val candidate = Candidate(name= name, emailAddress = emailAddress)
-					viewModel.insert(candidate)
-					viewModel.candidateId?.let { candidateId ->
-						navController?.navigate("${Screen.Test}?candidateId=$candidateId")
+					viewModel.insertCandidateAndGetId(candidate){ candidateId ->
+						candidateId?.let {
+							navController?.navigate("Test/${it}")
+						}
 					}
 				}
 			},

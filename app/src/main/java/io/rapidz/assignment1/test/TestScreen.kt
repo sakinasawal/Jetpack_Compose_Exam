@@ -44,14 +44,12 @@ import io.rapidz.assignment1.ui.*
 import io.rapidz.assignment1.viewmodel.TestViewModel
 import io.rapidz.assignment1.viewmodel.TestViewModelFactory
 
-@Preview
+
 @Composable
 fun TestScreenBottomNav(
-	navController: NavController? = null
+	navController: NavController? = null,
+	candidateId: Long
 ){
-	val candidateId = navController?.currentBackStackEntry?.arguments?.getString("candidateId")?.toLong()
-		?: error("Candidate ID is required.")
-
 	val context = LocalContext.current
 	val database = remember { AppDatabase.getDatabase(context) }
 	val repository = remember { TestRepository(database.answerDao()) }
@@ -61,11 +59,7 @@ fun TestScreenBottomNav(
 	val currentIndex = remember { mutableIntStateOf(0) }
 	var currentAnswer by remember { mutableStateOf("") }
 	var dialogType by remember { mutableStateOf<DialogType?>(null) }
-	val candidateAnswers = viewModel.getAnswersByCandidate(candidateId).collectAsState(initial = emptyList())
-
-	LaunchedEffect(currentIndex.intValue) {
-		currentAnswer = getSavedAnswer(questions[currentIndex.intValue],  candidateAnswers.value )
-	}
+	val candidateAnswers by viewModel.getAnswersByCandidate(candidateId).collectAsState(initial = emptyList())
 
 	DefaultTheme {
 		BottomAppBar(
@@ -87,13 +81,13 @@ fun TestScreenBottomNav(
 						dialogType = DialogType.ALL_QUESTIONS_COMPLETE
 					} else {
 						currentIndex.intValue++
-						currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateId, viewModel)
+						currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
 					}
 				}
 			},
 			onLeftDoubleArrowClick = {
 				currentIndex.intValue = 0
-				currentAnswer = getSavedAnswer(questions[0], candidateId, viewModel)
+				currentAnswer = getSavedAnswer(questions[0], candidateAnswers)
 				Unit
 			},
 			onRightDoubleArrowClick = {
@@ -104,7 +98,7 @@ fun TestScreenBottomNav(
 					viewModel = viewModel
 				)
 				currentIndex.intValue = questions.size - 1
-				currentAnswer = getSavedAnswer(questions.last(), candidateId, viewModel)
+				currentAnswer = getSavedAnswer(questions.last(), candidateAnswers)
 				Unit
 			}
 		){

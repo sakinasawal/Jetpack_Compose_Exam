@@ -18,10 +18,10 @@ class CandidateViewModel @Inject constructor (
 	val candidateId: Long?
 		get() = _candidateId
 
-	fun insert(candidate : Candidate){
+	fun insertCandidateAndGetId(candidate: Candidate, onResult: (Long?) -> Unit) {
 		viewModelScope.launch {
-			val newId =  candidateRepository.insertCandidate(candidate)
-			_candidateId = newId
+			val newId = candidateRepository.insertCandidate(candidate)
+			onResult(newId)
 		}
 	}
 }

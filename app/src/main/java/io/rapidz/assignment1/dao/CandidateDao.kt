@@ -11,11 +11,4 @@ import io.rapidz.assignment1.data.Candidate
 interface CandidateDao{
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	suspend fun insert(candidate: Candidate) : Long
-
-	@Query("SELECT * FROM candidates WHERE id = :id")
-	suspend fun getCandidateById(id: Int): Candidate?
-
-	@Query("SELECT * FROM candidates WHERE emailAddress = :emailAddress LIMIT 1")
-	suspend fun getCandidateByEmail(emailAddress: String): Candidate?
-
 }

@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 object DataStoreManager {
-
 	private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "candidate_prefs")
 
 	private val CANDIDATE_NAME = stringPreferencesKey("candidate_name")

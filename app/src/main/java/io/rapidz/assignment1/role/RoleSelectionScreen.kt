@@ -22,8 +22,6 @@ import io.rapidz.assignment1.ui.md_theme_default_primaryContainer
 @Composable
 fun RoleSelectionScreen(navController: NavController? = null) {
 
-	val showDialog = remember { mutableStateOf(false) }
-
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
@@ -59,41 +57,14 @@ fun RoleSelectionScreen(navController: NavController? = null) {
 				AppButton(
 					textRes = R.string.candidate,
 					onClick = {
-//						 showDialog.value = true
-						 navController?.navigate(Screen.Test)
+						 navController?.navigate(Screen.Candidate)
 					},
 					modifier = Modifier.fillMaxWidth()
 				)
 			}
-
-			if (showDialog.value){
-				ShowAlertDialog(navController!!){
-					showDialog.value = false
-				}
-			}
 		}
 	}
-
 }
-
-@Composable
-private fun ShowAlertDialog(navController: NavController? = null, closeDialog: () -> Unit){
-	DefaultTheme {
-		GeneralAlertDialog(
-			titleResId = R.string.title_last_test,
-			messageResId = R.string.message_last_test,
-			msgResId = R.string.candidate_dialog,
-			onPositiveButtonClick = {
-				navController!!.navigate(Screen.Candidate)
-				closeDialog()
-			},
-			onNegativeButtonClick = {
-				closeDialog()
-			}
-		)
-	}
-}
-
 
 @Preview
 @Composable

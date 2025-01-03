@@ -41,10 +41,25 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 		)
 	)
 
-	fun saveAnswer(questionId: Int, answer: String) {
+	fun saveAnswer(questionId: Int, answer: String, candidateId : Long) {
 		viewModelScope.launch {
-			repository.saveAnswer(Answer(questionId = questionId, answerText = answer))
+			val existingAnswer = _answers.value.find { it.questionId == questionId && it.candidateId == candidateId }
+			if (existingAnswer != null) {
+				repository.updateAnswer(existingAnswer.copy(answerText = answer))
+			} else {
+				repository.saveAnswer(Answer(questionId = questionId, answerText = answer, candidateId = candidateId))
+			}
 		}
+	}
+
+	fun getAnswersByCandidate(candidateId: Long): StateFlow<List<Answer>> {
+		val answersFlow = MutableStateFlow<List<Answer>>(emptyList())
+		viewModelScope.launch {
+			repository.getAnswersByCandidate(candidateId).collect {
+				answersFlow.value = it
+			}
+		}
+		return answersFlow
 	}
 
 	init {

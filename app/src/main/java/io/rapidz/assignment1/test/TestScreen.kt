@@ -21,20 +21,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.rapidz.assignment1.EndTestAlertDialog
 import io.rapidz.assignment1.GeneralAlertDialog
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.Screen
-import io.rapidz.assignment1.TextLabel1
+import io.rapidz.assignment1.TextLabelTitle
+import io.rapidz.assignment1.data.Answer
 import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.navigate
 import io.rapidz.assignment1.repository.TestRepository
 import io.rapidz.assignment1.spacing_1
-import io.rapidz.assignment1.spacing_10
 import io.rapidz.assignment1.spacing_20
 import io.rapidz.assignment1.spacing_24
 import io.rapidz.assignment1.spacing_4
@@ -50,6 +49,9 @@ import io.rapidz.assignment1.viewmodel.TestViewModelFactory
 fun TestScreenBottomNav(
 	navController: NavController? = null
 ){
+	val candidateId = navController?.currentBackStackEntry?.arguments?.getString("candidateId")?.toLong()
+		?: error("Candidate ID is required.")
+
 	val context = LocalContext.current
 	val database = remember { AppDatabase.getDatabase(context) }
 	val repository = remember { TestRepository(database.answerDao()) }
@@ -59,6 +61,11 @@ fun TestScreenBottomNav(
 	val currentIndex = remember { mutableIntStateOf(0) }
 	var currentAnswer by remember { mutableStateOf("") }
 	var dialogType by remember { mutableStateOf<DialogType?>(null) }
+	val candidateAnswers = viewModel.getAnswersByCandidate(candidateId).collectAsState(initial = emptyList())
+
+	LaunchedEffect(currentIndex.intValue) {
+		currentAnswer = getSavedAnswer(questions[currentIndex.intValue],  candidateAnswers.value )
+	}
 
 	DefaultTheme {
 		BottomAppBar(
@@ -66,37 +73,38 @@ fun TestScreenBottomNav(
 				if (!isQuestionComplete(questions[currentIndex.intValue], currentAnswer)){
 					dialogType = DialogType.QUESTION_NOT_COMPLETE
 				} else if (currentIndex.intValue > 0) {
-					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, viewModel)
+					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, viewModel)
 					currentIndex.intValue--
-					currentAnswer = getSavedAnswer(questions[currentIndex.intValue], viewModel)
+					currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
 				}
 			},
 			onRightArrowClick = {
 				if (!isQuestionComplete(questions[currentIndex.intValue], currentAnswer)) {
 					dialogType = DialogType.QUESTION_NOT_COMPLETE
 				} else {
-					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, viewModel)
+					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, viewModel)
 					if (currentIndex.intValue == questions.size - 1) {
 						dialogType = DialogType.ALL_QUESTIONS_COMPLETE
 					} else {
 						currentIndex.intValue++
-						currentAnswer = getSavedAnswer(questions[currentIndex.intValue], viewModel)
+						currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateId, viewModel)
 					}
 				}
 			},
 			onLeftDoubleArrowClick = {
 				currentIndex.intValue = 0
-				currentAnswer = getSavedAnswer(questions[0], viewModel)
+				currentAnswer = getSavedAnswer(questions[0], candidateId, viewModel)
 				Unit
 			},
 			onRightDoubleArrowClick = {
 				saveAnswerForCurrentQuestion(
 					question = questions[currentIndex.intValue],
 					currentAnswer = currentAnswer,
+					candidateId = candidateId,
 					viewModel = viewModel
 				)
 				currentIndex.intValue = questions.size - 1
-				currentAnswer = getSavedAnswer(questions.last(), viewModel)
+				currentAnswer = getSavedAnswer(questions.last(), candidateId, viewModel)
 				Unit
 			}
 		){
@@ -108,14 +116,14 @@ fun TestScreenBottomNav(
 			){
 				val question = questions[currentIndex.intValue]
 
-				TextLabel1(
+				TextLabelTitle(
 					text = "Question " + question.id,
 					typographyStyle = AppTypography.titleLarge
 				)
 
 				Spacer(modifier = Modifier.height(spacing_20))
 
-				TextLabel1(
+				TextLabelTitle(
 					text = question.questionText
 				)
 
@@ -230,20 +238,37 @@ fun Textarea(onAnswerChange: (String) -> Unit) {
 }
 
 /**
- * Handle data save and get from room db
+ * Handle display questions, save the data and get from room db
  */
 
 fun saveAnswerForCurrentQuestion(
 	question: Question,
 	currentAnswer: String,
+	candidateId : Long,
 	viewModel: TestViewModel
 ) {
-	viewModel.saveAnswer(question.id, currentAnswer)
+	viewModel.saveAnswer(question.id, currentAnswer, candidateId)
 }
 
-fun getSavedAnswer(question: Question, viewModel: TestViewModel): String {
-	val answers = viewModel.answers.value
-	return answers.find { it.questionId == question.id }?.answerText ?: ""
+fun getSavedAnswer(
+	question: Question,
+	candidateAnswers: List<Answer>)
+: String {
+	return candidateAnswers.find { it.questionId == question.id }?.answerText ?: ""
+}
+
+enum class DialogType {
+	QUESTION_NOT_COMPLETE,
+	ALL_QUESTIONS_NOT_COMPLETE,
+	ALL_QUESTIONS_COMPLETE
+}
+
+fun isQuestionComplete(question: Question, currentAnswer: String): Boolean {
+	return when (question.questionType) {
+		QuestionType.SINGLE_CHOICE -> currentAnswer.isNotEmpty()
+		QuestionType.MULTIPLE_CHOICE -> currentAnswer.isNotEmpty()
+		QuestionType.FREE_TEXT -> currentAnswer.isNotBlank()
+	}
 }
 
 /**
@@ -303,20 +328,6 @@ private fun EndOfTestDialog(navController: NavController? = null){
 				navController?.navigate(Screen.Role)
 			}
 		)
-	}
-}
-
-enum class DialogType {
-	QUESTION_NOT_COMPLETE,
-	ALL_QUESTIONS_NOT_COMPLETE,
-	ALL_QUESTIONS_COMPLETE
-}
-
-fun isQuestionComplete(question: Question, currentAnswer: String): Boolean {
-	return when (question.questionType) {
-		QuestionType.SINGLE_CHOICE -> currentAnswer.isNotEmpty()
-		QuestionType.MULTIPLE_CHOICE -> currentAnswer.isNotEmpty()
-		QuestionType.FREE_TEXT -> currentAnswer.isNotBlank()
 	}
 }
 

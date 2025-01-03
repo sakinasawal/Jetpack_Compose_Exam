@@ -24,7 +24,6 @@ class CandidateViewModel @Inject constructor (
 			_candidateId = newId
 		}
 	}
-
 }
 
 class CandidateViewModelFactory(private val candidateRepository: CandidateRepository) : ViewModelProvider.Factory {

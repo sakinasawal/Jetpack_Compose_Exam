@@ -8,5 +8,6 @@ data class Answer(
 	@PrimaryKey(autoGenerate = true)
 	val id: Int = 0,
 	val questionId: Int,
-	val answerText: String
+	val answerText: String,
+	val candidateId : Long
 )

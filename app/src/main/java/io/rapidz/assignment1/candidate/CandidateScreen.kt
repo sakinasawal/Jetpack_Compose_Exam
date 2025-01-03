@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,6 +40,8 @@ import kotlinx.coroutines.launch
 fun CandidateScreen(navController: NavController? = null) {
 
 	val context = LocalContext.current
+
+	val showDialog = remember { mutableStateOf(false) }
 
 	val candidateDataStoreViewModel: CandidateDataStoreViewModel = viewModel(
 		factory = CandidateDataStoreViewModelFactory(context)
@@ -81,7 +84,9 @@ fun CandidateScreen(navController: NavController? = null) {
 				if (isRegisterEnable){
 					val candidate = Candidate(name= name, emailAddress = emailAddress)
 					viewModel.insert(candidate)
-					navController?.navigate(Screen.Test)
+					viewModel.candidateId?.let { candidateId ->
+						navController?.navigate("${Screen.Test}?candidateId=$candidateId")
+					}
 				}
 			},
 			onBackgroundTap = {
@@ -108,7 +113,7 @@ private fun CandidateScreenRegisterForm(
 			.background(color = md_theme_default_background)
 			.padding(all = spacing_20)
 			.pointerInput(Unit) {
-				detectTapGestures(onTap = {onBackgroundTap()})
+				detectTapGestures(onTap = { onBackgroundTap() })
 			},
 		verticalArrangement = Arrangement.spacedBy(spacing_20),
 		horizontalAlignment = Alignment.Start
@@ -146,6 +151,24 @@ private fun isValidEmail(email : String) : Boolean {
 	val emailRegex = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})"
 	val pattern = Pattern.compile(emailRegex)
 	return pattern.matcher(email).matches()
+}
+
+@Composable
+fun ShowAlertDialog(navController: NavController? = null, closeDialog: () -> Unit){
+	DefaultTheme {
+		GeneralAlertDialog(
+			titleResId = R.string.title_last_test,
+			messageResId = R.string.message_last_test,
+			msgResId = R.string.candidate_dialog,
+			onPositiveButtonClick = {
+				navController!!.navigate(Screen.Candidate)
+				closeDialog()
+			},
+			onNegativeButtonClick = {
+				closeDialog()
+			}
+		)
+	}
 }
 
 

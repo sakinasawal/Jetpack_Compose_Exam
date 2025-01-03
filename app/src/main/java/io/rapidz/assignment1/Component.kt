@@ -2,9 +2,7 @@ package io.rapidz.assignment1
 
 import android.annotation.SuppressLint
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Done
@@ -12,20 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
-import io.rapidz.assignment1.ui.*
 import kotlinx.coroutines.delay
 
 @Composable
@@ -43,7 +35,7 @@ fun TextLabel(
 
 @Composable
 @SuppressLint("ModifierParameter")
-fun TextLabel1(
+fun TextLabelTitle(
 	text : String,
 	modifier : Modifier = Modifier,
 	typographyStyle: TextStyle = LocalTextStyle.current

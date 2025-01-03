@@ -4,12 +4,14 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.TextLabel
@@ -51,8 +53,16 @@ fun CandidateScreen(navController: NavController? = null) {
 	val candidateRepository = remember { CandidateRepository(database.candidateDao()) }
 	val viewModel: CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository))
 
-	val name by candidateDataStoreViewModel.name.collectAsState()
-	val emailAddress by candidateDataStoreViewModel.email.collectAsState()
+	var name by remember { mutableStateOf("") }
+	var emailAddress by remember { mutableStateOf("") }
+
+	val storedName by candidateDataStoreViewModel.name.collectAsState()
+	val storedEmail by candidateDataStoreViewModel.email.collectAsState()
+
+	LaunchedEffect(storedName, storedEmail) {
+		if (name.isEmpty()) name = storedName
+		if (emailAddress.isEmpty()) emailAddress = storedEmail
+	}
 
 	val isRegisterEnable by remember(name, emailAddress) {
 		derivedStateOf {
@@ -71,17 +81,16 @@ fun CandidateScreen(navController: NavController? = null) {
 			emailAddress = emailAddress,
 			isRegisterEnable = isRegisterEnable,
 			onNameChange = { newName ->
-				scope.launch {
-					candidateDataStoreViewModel.saveCandidateData(context, newName, emailAddress)
-				}
+				name = newName
 			},
 			onEmailAddressChange = { newEmailAddress ->
-				scope.launch {
-					candidateDataStoreViewModel.saveCandidateData(context, name, newEmailAddress)
-				}
+				emailAddress = newEmailAddress
 			},
 			onRegisterClick = {
 				if (isRegisterEnable){
+					scope.launch {
+						candidateDataStoreViewModel.saveCandidateData(context, name, emailAddress)
+					}
 					val candidate = Candidate(name= name, emailAddress = emailAddress)
 					viewModel.insertCandidateAndGetId(candidate){ candidateId ->
 						candidateId?.let {

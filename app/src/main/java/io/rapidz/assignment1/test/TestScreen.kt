@@ -15,7 +15,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,7 +43,6 @@ import io.rapidz.assignment1.ui.*
 import io.rapidz.assignment1.viewmodel.TestViewModel
 import io.rapidz.assignment1.viewmodel.TestViewModelFactory
 
-
 @Composable
 fun TestScreenBottomNav(
 	navController: NavController? = null,
@@ -60,6 +58,8 @@ fun TestScreenBottomNav(
 	var currentAnswer by remember { mutableStateOf("") }
 	var dialogType by remember { mutableStateOf<DialogType?>(null) }
 	val candidateAnswers by viewModel.getAnswersByCandidate(candidateId).collectAsState(initial = emptyList())
+
+	var showEndOfTestDialog by remember { mutableStateOf(false) }
 
 	DefaultTheme {
 		BottomAppBar(
@@ -140,16 +140,39 @@ fun TestScreenBottomNav(
 
 	dialogType?.let {
 		when (it) {
-			DialogType.QUESTION_NOT_COMPLETE -> QuestionNotCompleteDialog(onDismiss = { dialogType = null })
+			DialogType.QUESTION_NOT_COMPLETE -> QuestionNotCompleteDialog(
+				onProceed = {
+					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, viewModel)
+					currentIndex.intValue++
+					currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
+					dialogType = null
+				},
+				onDismiss = { dialogType = null }
+			)
 			DialogType.ALL_QUESTIONS_NOT_COMPLETE -> AllQuestionNotCompleteDialog(
 				onDismiss = { dialogType = null },
-				onEndTest = { navController?.navigate(Screen.Role) }
+				onEndTest = {
+					dialogType = null
+					showEndOfTestDialog = true
+				}
 			)
 			DialogType.ALL_QUESTIONS_COMPLETE -> AllQuestionCompleteDialog(
 				onDismiss = { dialogType = null },
-				onEndTest = { navController?.navigate(Screen.Role) }
+				onEndTest = {
+					dialogType = null
+					showEndOfTestDialog = true
+				}
 			)
 		}
+	}
+
+	if (showEndOfTestDialog) {
+		EndOfTestDialog(
+			navController = navController,
+			onDismiss = {
+				showEndOfTestDialog = false // Dismiss dialog
+			}
+		)
 	}
 }
 
@@ -270,12 +293,15 @@ fun isQuestionComplete(question: Question, currentAnswer: String): Boolean {
  */
 
 @Composable
-private fun QuestionNotCompleteDialog(onDismiss: () -> Unit) {
+private fun QuestionNotCompleteDialog(
+	onProceed: () -> Unit,
+	onDismiss: () -> Unit
+) {
 	UncompletedQuestionTheme {
 		GeneralAlertDialog(
 			titleResId = R.string.title_question_not_complete,
 			messageResId = R.string.content_question_not_complete,
-			onPositiveButtonClick = { onDismiss() },
+			onPositiveButtonClick = { onProceed() },
 			onNegativeButtonClick = { onDismiss() }
 		)
 	}
@@ -311,16 +337,17 @@ private fun AllQuestionNotCompleteDialog(
 	}
 }
 
-@Preview
 @Composable
-private fun EndOfTestDialog(navController: NavController? = null){
+fun EndOfTestDialog(navController: NavController? = null,
+					onDismiss: () -> Unit,){
 	CompletedQuestionTheme {
 		EndTestAlertDialog(
 			titleResId = R.string.title_end_test,
 			messageResId = R.string.content_end_test_final,
 			onPositiveButtonClick = {
 				navController?.navigate(Screen.Role)
-			}
+			},
+			onNegativeButtonClick = { onDismiss() }
 		)
 	}
 }

@@ -133,7 +133,8 @@ fun GeneralAlertDialog(
 fun EndTestAlertDialog(
 	@StringRes titleResId : Int,
 	@StringRes messageResId : Int,
-	onPositiveButtonClick : () -> Unit
+	onPositiveButtonClick : () -> Unit,
+	onNegativeButtonClick : () -> Unit
 ){
 	AlertDialog(
 		onDismissRequest = {},
@@ -153,6 +154,11 @@ fun EndTestAlertDialog(
 		confirmButton = {
 			TextButton(onClick = { onPositiveButtonClick() }) {
 				Text(R.string.dialog_ok)
+			}
+		},
+		dismissButton = {
+			TextButton(onClick = { onNegativeButtonClick() }) {
+				Text(R.string.dialog_no)
 			}
 		}
 	)

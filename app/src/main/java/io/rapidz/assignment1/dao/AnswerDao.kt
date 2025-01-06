@@ -21,4 +21,7 @@ interface AnswerDao {
 
 	@Query("SELECT * FROM answers WHERE candidateId = :candidateId")
 	fun getAnswersByCandidate(candidateId : Long) : Flow<List<Answer>>
+
+	@Query("DELETE FROM answers WHERE candidateId = :candidateId")
+	suspend fun deleteAnswersByCandidate(candidateId: Long)
 }

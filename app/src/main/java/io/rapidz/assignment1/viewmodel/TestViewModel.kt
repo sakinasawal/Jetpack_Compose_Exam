@@ -62,6 +62,12 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 		return answersFlow
 	}
 
+	fun clearAnswersForCandidate(candidateId: Long) {
+		viewModelScope.launch {
+			repository.deleteAnswersForCandidate(candidateId)
+		}
+	}
+
 	init {
 	    viewModelScope.launch {
 			repository.getAnswers().collect{

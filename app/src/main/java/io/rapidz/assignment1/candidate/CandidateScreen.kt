@@ -31,10 +31,13 @@ import io.rapidz.assignment1.viewmodel.CandidateViewModel
 import java.util.regex.Pattern
 import androidx.compose.ui.platform.LocalContext
 import io.rapidz.assignment1.repository.CandidateRepository
+import io.rapidz.assignment1.repository.TestRepository
 import io.rapidz.assignment1.storage.AppDatabase
 import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModel
 import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModelFactory
 import io.rapidz.assignment1.viewmodel.CandidateViewModelFactory
+import io.rapidz.assignment1.viewmodel.TestViewModel
+import io.rapidz.assignment1.viewmodel.TestViewModelFactory
 import kotlinx.coroutines.launch
 
 @Preview
@@ -42,8 +45,6 @@ import kotlinx.coroutines.launch
 fun CandidateScreen(navController: NavController? = null) {
 
 	val context = LocalContext.current
-
-	val showDialog = remember { mutableStateOf(false) }
 
 	val candidateDataStoreViewModel: CandidateDataStoreViewModel = viewModel(
 		factory = CandidateDataStoreViewModelFactory(context)
@@ -53,8 +54,13 @@ fun CandidateScreen(navController: NavController? = null) {
 	val candidateRepository = remember { CandidateRepository(database.candidateDao()) }
 	val viewModel: CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository))
 
+	val answerRepository = remember { TestRepository(database.answerDao()) }
+	val answerViewModel: TestViewModel = viewModel(factory = TestViewModelFactory(answerRepository))
+
 	var name by remember { mutableStateOf("") }
 	var emailAddress by remember { mutableStateOf("") }
+	var showDialog by remember { mutableStateOf(false) }
+	var candidateIdForDialog by remember { mutableStateOf<Long?>(null) }
 
 	val storedName by candidateDataStoreViewModel.name.collectAsState()
 	val storedEmail by candidateDataStoreViewModel.email.collectAsState()
@@ -88,13 +94,28 @@ fun CandidateScreen(navController: NavController? = null) {
 			},
 			onRegisterClick = {
 				if (isRegisterEnable){
-					scope.launch {
-						candidateDataStoreViewModel.saveCandidateData(context, name, emailAddress)
-					}
-					val candidate = Candidate(name= name, emailAddress = emailAddress)
-					viewModel.insertCandidateAndGetId(candidate){ candidateId ->
-						candidateId?.let {
-							navController?.navigate("Test/${it}")
+					viewModel.getCandidateByEmail(emailAddress){ existingCandidate ->
+						if (existingCandidate != null) {
+							val candidateId = existingCandidate.id
+							val answersFlow = answerViewModel.getAnswersByCandidate(candidateId)
+							scope.launch {
+								answersFlow.collect { answers ->
+									if(answers.isNotEmpty() && answers.any { it.answerText.isEmpty() }){
+										showDialog = true
+										candidateIdForDialog = candidateId
+									}
+								}
+							}
+						} else {
+							scope.launch {
+								candidateDataStoreViewModel.saveCandidateData(context, name, emailAddress)
+							}
+							val candidate = Candidate(name= name, emailAddress = emailAddress)
+							viewModel.insertCandidateAndGetId(candidate){ candidateId ->
+								candidateId?.let {
+									navController?.navigate("Test/${it}")
+								}
+							}
 						}
 					}
 				}
@@ -102,6 +123,24 @@ fun CandidateScreen(navController: NavController? = null) {
 			onBackgroundTap = {
 				keyboardController?.hide()
 				focusManager.clearFocus()
+			}
+		)
+	}
+
+	if (showDialog){
+		ShowAlertDialog(
+			onContinue = {
+				candidateIdForDialog?.let { candidateId ->
+					navController?.navigate("Test/${candidateId}?usePreviousData=true")
+				}
+				showDialog = false
+			},
+			onNewTest = {
+				candidateIdForDialog?.let { candidateId ->
+					answerViewModel.clearAnswersForCandidate(candidateId)
+					navController?.navigate("Test/${candidateId}")
+				}
+				showDialog = false
 			}
 		)
 	}
@@ -164,19 +203,17 @@ private fun isValidEmail(email : String) : Boolean {
 }
 
 @Composable
-fun ShowAlertDialog(navController: NavController? = null, closeDialog: () -> Unit){
+fun ShowAlertDialog(
+	onContinue: () -> Unit,
+	onNewTest: () -> Unit
+){
 	DefaultTheme {
 		GeneralAlertDialog(
 			titleResId = R.string.title_last_test,
 			messageResId = R.string.message_last_test,
 			msgResId = R.string.candidate_dialog,
-			onPositiveButtonClick = {
-				navController!!.navigate(Screen.Candidate)
-				closeDialog()
-			},
-			onNegativeButtonClick = {
-				closeDialog()
-			}
+			onPositiveButtonClick = { onContinue() },
+			onNegativeButtonClick = { onNewTest() }
 		)
 	}
 }

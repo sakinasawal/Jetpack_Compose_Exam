@@ -46,7 +46,8 @@ import io.rapidz.assignment1.viewmodel.TestViewModelFactory
 @Composable
 fun TestScreenBottomNav(
 	navController: NavController? = null,
-	candidateId: Long
+	candidateId: Long,
+	usePreviousData: Boolean = false
 ){
 	val context = LocalContext.current
 	val database = remember { AppDatabase.getDatabase(context) }
@@ -60,6 +61,14 @@ fun TestScreenBottomNav(
 	val candidateAnswers by viewModel.getAnswersByCandidate(candidateId).collectAsState(initial = emptyList())
 
 	var showEndOfTestDialog by remember { mutableStateOf(false) }
+
+	LaunchedEffect(usePreviousData) {
+		if (usePreviousData) {
+			currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
+		} else {
+			viewModel.clearAnswersForCandidate(candidateId)
+		}
+	}
 
 	DefaultTheme {
 		BottomAppBar(
@@ -175,7 +184,7 @@ fun TestScreenBottomNav(
 		EndOfTestDialog(
 			navController = navController,
 			onDismiss = {
-				showEndOfTestDialog = false // Dismiss dialog
+				showEndOfTestDialog = false
 			}
 		)
 	}

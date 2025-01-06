@@ -10,4 +10,8 @@ class CandidateRepository @Inject constructor (
 	suspend fun insertCandidate(candidate : Candidate) : Long {
 		return candidateDao.insert(candidate)
 	}
+
+	suspend fun getCandidateByEmail(email: String): Candidate? {
+		return candidateDao.getCandidateByEmail(email)
+	}
 }

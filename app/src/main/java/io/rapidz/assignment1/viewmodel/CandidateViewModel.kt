@@ -24,6 +24,13 @@ class CandidateViewModel @Inject constructor (
 			onResult(newId)
 		}
 	}
+
+	fun getCandidateByEmail(email: String, onResult: (Candidate?) -> Unit) {
+		viewModelScope.launch {
+			val candidate = candidateRepository.getCandidateByEmail(email)
+			onResult(candidate)
+		}
+	}
 }
 
 class CandidateViewModelFactory(private val candidateRepository: CandidateRepository) : ViewModelProvider.Factory {

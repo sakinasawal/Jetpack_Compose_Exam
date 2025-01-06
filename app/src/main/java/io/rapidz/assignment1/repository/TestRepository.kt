@@ -22,4 +22,8 @@ class TestRepository @Inject constructor(private val answerDao: AnswerDao) {
 	fun getAnswersByCandidate(candidateId : Long) : Flow<List<Answer>>{
 		return answerDao.getAnswersByCandidate(candidateId)
 	}
+
+	suspend fun deleteAnswersForCandidate(candidateId: Long) {
+		answerDao.deleteAnswersByCandidate(candidateId)
+	}
 }

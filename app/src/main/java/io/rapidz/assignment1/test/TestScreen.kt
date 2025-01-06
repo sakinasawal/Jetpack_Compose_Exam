@@ -143,9 +143,14 @@ fun TestScreenBottomNav(
 			DialogType.QUESTION_NOT_COMPLETE -> QuestionNotCompleteDialog(
 				onProceed = {
 					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, viewModel)
-					currentIndex.intValue++
-					currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
-					dialogType = null
+					if(currentIndex.intValue == questions.size - 1){
+						dialogType = null
+						showEndOfTestDialog = true
+					} else {
+						currentIndex.intValue++
+						currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
+						dialogType = null
+					}
 				},
 				onDismiss = { dialogType = null }
 			)
@@ -176,9 +181,12 @@ fun TestScreenBottomNav(
 	}
 }
 
+// ================= Region Question Type =====================
+
 /**
  * List of answers (3 types)
  */
+
 @Composable
 fun RadioButtonAnswer(options: List<String>, currentAnswer: String, onAnswerChange: (String) -> Unit){
 	var selectedOption by remember(currentAnswer) { mutableStateOf(currentAnswer) }
@@ -254,6 +262,8 @@ fun Textarea(onAnswerChange: (String) -> Unit) {
 	)
 }
 
+// ================= Region Question & Answer  =====================
+
 /**
  * Handle display questions, save the data and get from room db
  */
@@ -287,6 +297,8 @@ fun isQuestionComplete(question: Question, currentAnswer: String): Boolean {
 		QuestionType.FREE_TEXT -> currentAnswer.isNotBlank()
 	}
 }
+
+// ================= Region Dialog =====================
 
 /**
  * Handle dialog if question is answered or not

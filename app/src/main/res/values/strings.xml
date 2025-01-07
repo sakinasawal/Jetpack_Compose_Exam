@@ -15,7 +15,7 @@
 	<string name="dialog_ok">Ok</string>
 	<string name="title_last_test">Last Test</string>
 	<string name="message_last_test">The previous taken test was not completed. Do you want to continue?</string>
-	<string name="candidate_dialog">Candidate: </string>
+	<string name="candidate_dialog">Candidate: %1$s</string>
 	<string name="title_end_test">End of Test</string>
 	<string name="content_end_test">Are you sure you want to end it?</string>
 	<string name="content_end_test_final">You have done the test. Thank you.</string>

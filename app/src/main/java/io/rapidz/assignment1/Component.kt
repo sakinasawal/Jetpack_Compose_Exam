@@ -91,7 +91,7 @@ fun Text(@StringRes res: Int) = Text(stringResource(res))
 fun GeneralAlertDialog(
 	@StringRes titleResId : Int,
 	@StringRes messageResId : Int,
-	@StringRes msgResId : Int? = null,
+	msg : String? = null,
 	onPositiveButtonClick : () -> Unit,
 	onNegativeButtonClick : () -> Unit
 ){
@@ -110,8 +110,8 @@ fun GeneralAlertDialog(
 
 				Spacer(modifier = Modifier.height(spacing_10))
 				
-				if (msgResId != null) {
-					Text(msgResId)
+				if (msg != null) {
+					Text(msg)
 				}
 			}
 

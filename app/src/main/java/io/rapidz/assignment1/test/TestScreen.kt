@@ -47,7 +47,7 @@ import io.rapidz.assignment1.viewmodel.TestViewModelFactory
 fun TestScreenBottomNav(
 	navController: NavController? = null,
 	candidateId: Long,
-	usePreviousData: Boolean = false
+	usePreviousData: Boolean
 ){
 	val context = LocalContext.current
 	val database = remember { AppDatabase.getDatabase(context) }

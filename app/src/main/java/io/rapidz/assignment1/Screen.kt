@@ -18,10 +18,11 @@ sealed class Screen(val route: String, val content: @Composable (NavController, 
 
 	data object Candidate : Screen("Candidate", { navController, _ -> CandidateScreen(navController = navController) })
 
-	data object Test : Screen("Test/{candidateId}", { navController, arguments ->
+	data object Test : Screen("Test/{candidateId}?usePreviousData={usePreviousData}", { navController, arguments ->
 		val candidateId = arguments?.getString("candidateId")?.toLongOrNull()
+		val usePreviousData = arguments?.getString("usePreviousData")?.toBoolean() ?: false
 		if (candidateId != null) {
-			TestScreenBottomNav(navController = navController, candidateId = candidateId)
+			TestScreenBottomNav(navController = navController, candidateId = candidateId, usePreviousData = usePreviousData)
 		} else {
 			error("Candidate ID is required.")
 		}

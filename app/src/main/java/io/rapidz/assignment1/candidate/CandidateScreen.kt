@@ -129,6 +129,7 @@ fun CandidateScreen(navController: NavController? = null) {
 
 	if (showDialog){
 		ShowAlertDialog(
+			candidateName = storedName,
 			onContinue = {
 				candidateIdForDialog?.let { candidateId ->
 					navController?.navigate("Test/${candidateId}?usePreviousData=true")
@@ -138,7 +139,7 @@ fun CandidateScreen(navController: NavController? = null) {
 			onNewTest = {
 				candidateIdForDialog?.let { candidateId ->
 					answerViewModel.clearAnswersForCandidate(candidateId)
-					navController?.navigate("Test/${candidateId}")
+					navController?.navigate("Test/${candidateId}?usePreviousData=false")
 				}
 				showDialog = false
 			}
@@ -204,6 +205,7 @@ private fun isValidEmail(email : String) : Boolean {
 
 @Composable
 fun ShowAlertDialog(
+	candidateName : String,
 	onContinue: () -> Unit,
 	onNewTest: () -> Unit
 ){
@@ -211,7 +213,7 @@ fun ShowAlertDialog(
 		GeneralAlertDialog(
 			titleResId = R.string.title_last_test,
 			messageResId = R.string.message_last_test,
-			msgResId = R.string.candidate_dialog,
+			msg = stringResource(R.string.candidate_dialog, candidateName),
 			onPositiveButtonClick = { onContinue() },
 			onNegativeButtonClick = { onNewTest() }
 		)

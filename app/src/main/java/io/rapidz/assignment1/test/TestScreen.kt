@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Checkbox
@@ -19,7 +20,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.rapidz.assignment1.EndTestAlertDialog
@@ -88,7 +93,11 @@ fun TestScreenBottomNav(
 					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, viewModel)
 					if (currentIndex.intValue == questions.size - 1) {
 						val allQuestionsComplete = questions.all { question ->
-							candidateAnswers.any { it.questionId == question.id && it.answerText.isNotBlank() }
+							if (question.id == questions[currentIndex.intValue].id){
+								currentAnswer.isNotBlank() && currentAnswer.isNotEmpty()
+							} else {
+								candidateAnswers.any { it.questionId == question.id && it.answerText.isNotEmpty()}
+							}
 						}
 						dialogType = if (allQuestionsComplete) {
 							DialogType.ALL_QUESTIONS_COMPLETE
@@ -264,8 +273,13 @@ fun CheckBoxAnswer(options: List<String>, currentAnswer: String, onAnswerChange:
 
 @Composable
 fun Textarea(
-	initialText: String = "", onAnswerChange: (String) -> Unit) {
+	initialText: String = "",
+	onAnswerChange: (String) -> Unit
+) {
 	var text by remember { mutableStateOf(initialText) }
+
+	val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+	val dynamicHeight = screenHeight * 0.65f
 
 	TextField(
 		value = text,
@@ -275,7 +289,7 @@ fun Textarea(
 		},
 		modifier = Modifier
 			.fillMaxWidth()
-			.fillMaxHeight(0.9f)
+			.heightIn(min = dynamicHeight)
 			.padding(spacing_4)
 			.border(width = spacing_1, color = Color.Black)
 	)
@@ -313,7 +327,7 @@ fun isQuestionComplete(question: Question, currentAnswer: String): Boolean {
 	return when (question.questionType) {
 		QuestionType.SINGLE_CHOICE -> currentAnswer.isNotEmpty()
 		QuestionType.MULTIPLE_CHOICE -> currentAnswer.isNotEmpty()
-		QuestionType.FREE_TEXT -> currentAnswer.isNotBlank()
+		QuestionType.FREE_TEXT -> currentAnswer.isNotBlank() && currentAnswer.isNotEmpty()
 	}
 }
 

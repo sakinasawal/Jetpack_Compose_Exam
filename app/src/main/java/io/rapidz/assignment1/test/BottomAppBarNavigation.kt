@@ -151,10 +151,66 @@ fun CountdownText(milliseconds : Long){
 
 @Preview
 @Composable
-fun BottomNavigationBarPreview(){
-//	BottomNavBar()
+fun BottomAppBarAdminPreview() {
+	AdminTheme {
+		BottomAppBarAdmin()
+	}
 }
 
+@Composable
+fun BottomAppBarAdmin(
+	showCountDownTimer : Boolean = true,
+	countdownMillis : Long = 0L,
+	onLeftDoubleArrowClick : () -> Unit? = {},
+	onLeftArrowClick : () -> Unit? = {},
+	onRightArrowClick : () -> Unit? = {},
+	onRightDoubleArrowClick : () -> Unit? = {},
+	onFloatingButtonClick : () -> Unit? = {},
+	content: @Composable () -> Unit? = {}
+) {
+	Scaffold(
+		bottomBar = {
+			BottomAppBar(
+				actions = {
+					IconButton(onClick = { onLeftDoubleArrowClick()}) {
+						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
+					}
+					IconButton(onClick = { onLeftArrowClick()}) {
+						Icon(Icons.Default.ChevronLeft, contentDescription = null)
+					}
+					IconButton(onClick = { onRightArrowClick()}) {
+						Icon(Icons.Default.ChevronRight, contentDescription = null)
+					}
+					IconButton(onClick = { onRightDoubleArrowClick()}) {
+						Icon(Icons.Default.KeyboardDoubleArrowRight, null)
+					}
+					if (showCountDownTimer){
+						Row{
+							Spacer(modifier = Modifier.width(spacing_20))
+							CountdownText(milliseconds = countdownMillis)
+						}
+					}
+				},
+				floatingActionButton = {
+					FloatingActionButton(
+						onClick = { onFloatingButtonClick() },
+						elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+					) {
+						Icon(Icons.Default.DoneAll, null)
+					}
+				}
+			)
+		},
+	) {
+			innerPadding ->
+		Box(
+			modifier = Modifier
+				.padding(innerPadding)
+				.verticalScroll(rememberScrollState())
+		)
+		content()
+	}
+}
 
 @Composable
 fun BottomNavBar(

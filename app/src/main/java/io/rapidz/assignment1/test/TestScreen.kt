@@ -87,7 +87,14 @@ fun TestScreenBottomNav(
 				} else {
 					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, viewModel)
 					if (currentIndex.intValue == questions.size - 1) {
-						dialogType = DialogType.ALL_QUESTIONS_COMPLETE
+						val allQuestionsComplete = questions.all { question ->
+							candidateAnswers.any { it.questionId == question.id && it.answerText.isNotBlank() }
+						}
+						dialogType = if (allQuestionsComplete) {
+							DialogType.ALL_QUESTIONS_COMPLETE
+						} else {
+							DialogType.ALL_QUESTIONS_NOT_COMPLETE
+						}
 					} else {
 						currentIndex.intValue++
 						currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
@@ -141,7 +148,9 @@ fun TestScreenBottomNav(
 						options = question.options,
 						currentAnswer = currentAnswer,
 						onAnswerChange = { currentAnswer = it })
-					QuestionType.FREE_TEXT -> Textarea(onAnswerChange = { currentAnswer = it })
+					QuestionType.FREE_TEXT -> Textarea(
+						initialText = currentAnswer,
+						onAnswerChange = { currentAnswer = it })
 				}
 			}
 		}
@@ -254,8 +263,9 @@ fun CheckBoxAnswer(options: List<String>, currentAnswer: String, onAnswerChange:
 }
 
 @Composable
-fun Textarea(onAnswerChange: (String) -> Unit) {
-	var text by remember { mutableStateOf("") }
+fun Textarea(
+	initialText: String = "", onAnswerChange: (String) -> Unit) {
+	var text by remember { mutableStateOf(initialText) }
 
 	TextField(
 		value = text,

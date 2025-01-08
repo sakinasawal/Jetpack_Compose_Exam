@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import io.rapidz.assignment1.admin.AdminHomeScreen
 import io.rapidz.assignment1.admin.AdminScreen
 import io.rapidz.assignment1.candidate.CandidateScreen
 import io.rapidz.assignment1.role.RoleSelectionScreen
@@ -14,7 +15,9 @@ sealed class Screen(val route: String, val content: @Composable (NavController, 
 
 	data object Role : Screen("Role", { navController, _ -> RoleSelectionScreen(navController = navController) })
 
-	data object Admin : Screen("Admin", { _, _ -> AdminScreen() })
+	data object Admin : Screen("Admin", { navController, _ -> AdminScreen(navController = navController) })
+
+	data object AdminHome : Screen("AdminHome", { _, _ -> AdminHomeScreen() })
 
 	data object Candidate : Screen("Candidate", { navController, _ -> CandidateScreen(navController = navController) })
 

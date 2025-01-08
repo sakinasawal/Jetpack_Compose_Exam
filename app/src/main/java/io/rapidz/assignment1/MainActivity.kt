@@ -46,6 +46,7 @@ fun MainApplication(){
 		composable(navController,Screen.Admin)
 		composable(navController,Screen.Candidate)
 		composable(navController,Screen.Test)
+		composable(navController,Screen.AdminHome)
 	}
 }
 

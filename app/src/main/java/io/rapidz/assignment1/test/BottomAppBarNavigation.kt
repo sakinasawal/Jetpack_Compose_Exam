@@ -124,8 +124,7 @@ fun BottomAppBar(
 				}
 			)
 		},
-	) {
-		innerPadding ->
+	) { innerPadding ->
 		Box(
 			modifier = Modifier
 				.padding(innerPadding)
@@ -201,8 +200,7 @@ fun BottomAppBarAdmin(
 				}
 			)
 		},
-	) {
-			innerPadding ->
+	) { innerPadding ->
 		Box(
 			modifier = Modifier
 				.padding(innerPadding)

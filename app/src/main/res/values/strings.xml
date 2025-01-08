@@ -1,7 +1,10 @@
 <resources>
-	<string name = "app_name">Test</string>
+	<string name="app_name">Test</string>
+
+	<!-- Screen  -->
 	<string name="select_your_role">Select your role</string>
 	<string name="admin">Admin Login</string>
+	<string name="admin_home">Admin Dasboard</string>
 	<string name="candidate">Candidate</string>
 	<string name="candidate_registration">Candidate Registration</string>
 	<string name="name">Lee King Hung</string>
@@ -9,6 +12,8 @@
 	<string name="register">Register</string>
 	<string name="password">Password</string>
 	<string name="login">Login</string>
+	<string name="wrong_password">Wrong password.</string>
+	<string name="password_value">Andr0!d</string>
 
 	<!-- Dialog -->
 	<string name="test_screen">Test Screen</string>

@@ -31,6 +31,13 @@ class CandidateViewModel @Inject constructor (
 			onResult(candidate)
 		}
 	}
+
+	fun getAllCandidates(onResult: (List<Candidate>) -> Unit) {
+		viewModelScope.launch {
+			val candidates = candidateRepository.getAllCandidates()
+			onResult(candidates)
+		}
+	}
 }
 
 class CandidateViewModelFactory(private val candidateRepository: CandidateRepository) : ViewModelProvider.Factory {

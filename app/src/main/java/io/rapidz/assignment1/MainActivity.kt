@@ -44,9 +44,10 @@ fun MainApplication(){
 	{
 		composable(navController,Screen.Role)
 		composable(navController,Screen.Admin)
+		composable(navController,Screen.AdminHome)
+		composable(navController,Screen.AdminTest)
 		composable(navController,Screen.Candidate)
 		composable(navController,Screen.Test)
-		composable(navController,Screen.AdminHome)
 	}
 }
 

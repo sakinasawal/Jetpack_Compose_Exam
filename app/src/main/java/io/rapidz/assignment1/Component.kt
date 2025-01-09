@@ -51,13 +51,28 @@ fun InputTextField(
 	value : String,
 	onValueChange : (String)->Unit,
 	placeholder: String,
-	modifier : Modifier = Modifier
+	modifier : Modifier = Modifier,
 ){
 	TextField(
 		value = value,
 		onValueChange = onValueChange,
 		modifier = modifier.fillMaxWidth(),
 		placeholder = { Text(placeholder) }
+	)
+}
+
+@Composable
+fun InputTextFieldAdmin(
+	value : String,
+	onValueChange : (String)->Unit,
+	label: String,
+	modifier : Modifier = Modifier,
+){
+	TextField(
+		value = value,
+		onValueChange = onValueChange,
+		modifier = modifier.fillMaxWidth(),
+		label = { Text(label) }
 	)
 }
 

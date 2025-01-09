@@ -14,4 +14,7 @@ interface CandidateDao{
 
 	@Query("SELECT * FROM candidates WHERE emailAddress = :email LIMIT 1")
 	suspend fun getCandidateByEmail(email: String): Candidate?
+
+	@Query("SELECT * FROM candidates")
+	suspend fun getAllCandidates(): List<Candidate>
 }

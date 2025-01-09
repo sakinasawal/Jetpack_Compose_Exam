@@ -14,4 +14,8 @@ class CandidateRepository @Inject constructor (
 	suspend fun getCandidateByEmail(email: String): Candidate? {
 		return candidateDao.getCandidateByEmail(email)
 	}
+
+	suspend fun getAllCandidates(): List<Candidate> {
+		return candidateDao.getAllCandidates()
+	}
 }

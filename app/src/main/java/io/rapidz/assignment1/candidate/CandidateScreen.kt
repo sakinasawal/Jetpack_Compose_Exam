@@ -51,6 +51,7 @@ fun CandidateScreen(navController: NavController? = null) {
 	)
 
 	val database = remember { AppDatabase.getDatabase(context) }
+
 	val candidateRepository = remember { CandidateRepository(database.candidateDao()) }
 	val viewModel: CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository))
 

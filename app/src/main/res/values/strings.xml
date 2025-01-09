@@ -14,6 +14,10 @@
 	<string name="login">Login</string>
 	<string name="wrong_password">Wrong password.</string>
 	<string name="password_value">Andr0!d</string>
+	<string name="time_limit_admin">Test Time Limit (minutes)</string>
+	<string name="taken_tests">Taken Tests</string>
+	<string name="search">Search</string>
+	<string name="admin_taken_tests">Admin Taken Tests</string>
 
 	<!-- Dialog -->
 	<string name="test_screen">Test Screen</string>

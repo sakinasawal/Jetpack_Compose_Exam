@@ -7,6 +7,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import io.rapidz.assignment1.admin.AdminHomeScreen
 import io.rapidz.assignment1.admin.AdminScreen
+import io.rapidz.assignment1.admin.AdminTestScreen
 import io.rapidz.assignment1.candidate.CandidateScreen
 import io.rapidz.assignment1.role.RoleSelectionScreen
 import io.rapidz.assignment1.test.TestScreenBottomNav
@@ -17,7 +18,16 @@ sealed class Screen(val route: String, val content: @Composable (NavController, 
 
 	data object Admin : Screen("Admin", { navController, _ -> AdminScreen(navController = navController) })
 
-	data object AdminHome : Screen("AdminHome", { _, _ -> AdminHomeScreen() })
+	data object AdminHome : Screen("AdminHome", { navController, _ -> AdminHomeScreen(navController = navController) })
+
+	data object AdminTest : Screen("AdminTest/{candidateId}", { _, arguments ->
+		val candidateId = arguments?.getString("candidateId")?.toLongOrNull()
+		if (candidateId != null) {
+			AdminTestScreen(candidateId = candidateId)
+		} else {
+			error("Candidate ID is required.")
+		}
+	})
 
 	data object Candidate : Screen("Candidate", { navController, _ -> CandidateScreen(navController = navController) })
 

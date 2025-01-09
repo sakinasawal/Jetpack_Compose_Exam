@@ -164,13 +164,18 @@ fun BottomAppBarAdmin(
 	onLeftArrowClick : () -> Unit? = {},
 	onRightArrowClick : () -> Unit? = {},
 	onRightDoubleArrowClick : () -> Unit? = {},
-	onFloatingButtonClick : () -> Unit? = {},
 	content: @Composable () -> Unit? = {}
 ) {
 	Scaffold(
 		bottomBar = {
 			BottomAppBar(
 				actions = {
+					IconButton(onClick = { onLeftDoubleArrowClick()}) {
+						Icon(Icons.Default.Done, contentDescription = null)
+					}
+					IconButton(onClick = { onLeftDoubleArrowClick()}) {
+						Icon(Icons.Default.Close, contentDescription = null)
+					}
 					IconButton(onClick = { onLeftDoubleArrowClick()}) {
 						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
 					}
@@ -190,14 +195,6 @@ fun BottomAppBarAdmin(
 						}
 					}
 				},
-				floatingActionButton = {
-					FloatingActionButton(
-						onClick = { onFloatingButtonClick() },
-						elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-					) {
-						Icon(Icons.Default.DoneAll, null)
-					}
-				}
 			)
 		},
 	) { innerPadding ->

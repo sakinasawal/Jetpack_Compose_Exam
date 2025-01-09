@@ -26,13 +26,15 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 			id = 1,
 			questionText = "What is your favorite color?",
 			options = listOf("Red", "Blue", "Green", "Yellow"),
-			questionType = QuestionType.SINGLE_CHOICE
+			questionType = QuestionType.SINGLE_CHOICE,
+			defaultAnswer = "Blue"
 		),
 		Question(
 			id = 2,
 			questionText = "Which programming languages do you know?",
 			options = listOf("Kotlin", "Java", "Swift", "Python"),
-			questionType = QuestionType.MULTIPLE_CHOICE
+			questionType = QuestionType.MULTIPLE_CHOICE,
+			defaultAnswer = "Kotlin, Java"
 		),
 		Question(
 			id = 3,

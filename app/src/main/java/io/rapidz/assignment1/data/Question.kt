@@ -4,7 +4,8 @@ data class Question(
 	val id: Int,
 	val questionText: String,
 	val options: List<String> = emptyList(),
-	val questionType: QuestionType
+	val questionType: QuestionType,
+	val defaultAnswer : String = ""
 )
 
 enum class QuestionType {

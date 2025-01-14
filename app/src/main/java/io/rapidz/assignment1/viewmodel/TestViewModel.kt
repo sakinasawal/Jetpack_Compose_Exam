@@ -58,11 +58,7 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 				repository.updateAnswer(existingAnswer.copy(answerText = answer))
 			} else {
 				repository.saveAnswer(
-					Answer(
-						questionId = questionId,
-						answerText = answer,
-						candidateId = candidateId,
-						defaultAnswer = defaultAnswer))
+					Answer(questionId = questionId, answerText = answer, candidateId = candidateId, defaultAnswer = defaultAnswer))
 			}
 		}
 	}

@@ -10,6 +10,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import io.rapidz.assignment1.*
 import io.rapidz.assignment1.ui.*
@@ -160,6 +162,11 @@ fun BottomAppBarAdminPreview() {
 fun BottomAppBarAdmin(
 	showCountDownTimer : Boolean = true,
 	countdownMillis : Long = 0L,
+	showDoneIcon: Boolean = true,
+	showCloseIcon: Boolean = true,
+	doneIconColor: Color = Color(0xFF018786),
+	closeIcon: ImageVector = Icons.Default.Close,
+	closeIconColor: Color = md_theme_admin_error,
 	onLeftDoubleArrowClick : () -> Unit? = {},
 	onLeftArrowClick : () -> Unit? = {},
 	onRightArrowClick : () -> Unit? = {},
@@ -170,11 +177,15 @@ fun BottomAppBarAdmin(
 		bottomBar = {
 			BottomAppBar(
 				actions = {
-					IconButton(onClick = { onLeftDoubleArrowClick()}) {
-						Icon(Icons.Default.Done, contentDescription = null)
+					if (showDoneIcon) {
+						IconButton(onClick = { }) {
+							Icon(Icons.Default.Done, contentDescription = null, tint = doneIconColor)
+						}
 					}
-					IconButton(onClick = { onLeftDoubleArrowClick()}) {
-						Icon(Icons.Default.Close, contentDescription = null)
+					if (showCloseIcon) {
+						IconButton(onClick = { }) {
+							Icon(closeIcon, contentDescription = null, tint = closeIconColor)
+						}
 					}
 					IconButton(onClick = { onLeftDoubleArrowClick()}) {
 						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)

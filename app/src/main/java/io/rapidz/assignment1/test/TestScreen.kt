@@ -274,6 +274,7 @@ fun CheckBoxAnswer(options: List<String>, currentAnswer: String, onAnswerChange:
 @Composable
 fun Textarea(
 	initialText: String = "",
+	readOnly: Boolean = false,
 	onAnswerChange: (String) -> Unit
 ) {
 	var text by remember { mutableStateOf(initialText) }
@@ -284,14 +285,17 @@ fun Textarea(
 	TextField(
 		value = text,
 		onValueChange = {
-			text = it
-			onAnswerChange(it)
+			if (!readOnly){
+				text = it
+				onAnswerChange(it)
+			}
 		},
 		modifier = Modifier
 			.fillMaxWidth()
 			.heightIn(min = dynamicHeight)
 			.padding(spacing_4)
-			.border(width = spacing_1, color = Color.Black)
+			.border(width = spacing_1, color = Color.Black),
+		readOnly = readOnly
 	)
 }
 
@@ -307,7 +311,7 @@ fun saveAnswerForCurrentQuestion(
 	candidateId : Long,
 	viewModel: TestViewModel
 ) {
-	viewModel.saveAnswer(question.id, currentAnswer, candidateId, question.defaultAnswer )
+	viewModel.saveAnswer(question.id, currentAnswer, candidateId, question.questionType, question.defaultAnswer)
 }
 
 fun getSavedAnswer(

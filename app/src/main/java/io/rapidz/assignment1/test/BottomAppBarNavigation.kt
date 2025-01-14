@@ -167,6 +167,8 @@ fun BottomAppBarAdmin(
 	doneIconColor: Color = Color(0xFF018786),
 	closeIcon: ImageVector = Icons.Default.Close,
 	closeIconColor: Color = md_theme_admin_error,
+	onDoneClick: () -> Unit = {},
+	onCloseClick: () -> Unit = {},
 	onLeftDoubleArrowClick : () -> Unit? = {},
 	onLeftArrowClick : () -> Unit? = {},
 	onRightArrowClick : () -> Unit? = {},
@@ -178,12 +180,12 @@ fun BottomAppBarAdmin(
 			BottomAppBar(
 				actions = {
 					if (showDoneIcon) {
-						IconButton(onClick = { }) {
+						IconButton(onClick = { onDoneClick() }) {
 							Icon(Icons.Default.Done, contentDescription = null, tint = doneIconColor)
 						}
 					}
 					if (showCloseIcon) {
-						IconButton(onClick = { }) {
+						IconButton(onClick = { onCloseClick() }) {
 							Icon(closeIcon, contentDescription = null, tint = closeIconColor)
 						}
 					}

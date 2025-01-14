@@ -51,14 +51,20 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 		)
 	)
 
-	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, defaultAnswer: String) {
+	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, questionType: QuestionType, defaultAnswer: String) {
 		viewModelScope.launch {
+			val score = when (questionType) {
+				QuestionType.FREE_TEXT -> "?" // Save '?' for FREE_TEXT type
+				else -> {
+					if (answer == defaultAnswer) 10.toString() else 0.toString()
+				}
+			}
 			val existingAnswer = _answers.value.find { it.questionId == questionId && it.candidateId == candidateId }
 			if (existingAnswer != null) {
-				repository.updateAnswer(existingAnswer.copy(answerText = answer))
+				repository.updateAnswer(existingAnswer.copy(answerText = answer, score = score))
 			} else {
 				repository.saveAnswer(
-					Answer(questionId = questionId, answerText = answer, candidateId = candidateId, defaultAnswer = defaultAnswer))
+					Answer(questionId = questionId, answerText = answer, candidateId = candidateId, defaultAnswer = defaultAnswer, score = score))
 			}
 		}
 	}

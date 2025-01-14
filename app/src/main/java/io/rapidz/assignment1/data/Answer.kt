@@ -9,5 +9,6 @@ data class Answer(
 	val id: Int = 0,
 	val questionId: Int,
 	val answerText: String,
-	val candidateId : Long
+	val candidateId : Long,
+	val defaultAnswer: String
 )

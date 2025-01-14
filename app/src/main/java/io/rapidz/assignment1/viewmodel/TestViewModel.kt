@@ -21,6 +21,14 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 	private val _answers = MutableStateFlow<List<Answer>>(emptyList())
 	val answers : StateFlow<List<Answer>> = _answers
 
+	init {
+		viewModelScope.launch {
+			repository.getAnswers().collect{
+				_answers.value = it
+			}
+		}
+	}
+
 	val questions: List<Question> = listOf(
 		Question(
 			id = 1,
@@ -43,13 +51,18 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 		)
 	)
 
-	fun saveAnswer(questionId: Int, answer: String, candidateId : Long) {
+	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, defaultAnswer: String) {
 		viewModelScope.launch {
 			val existingAnswer = _answers.value.find { it.questionId == questionId && it.candidateId == candidateId }
 			if (existingAnswer != null) {
 				repository.updateAnswer(existingAnswer.copy(answerText = answer))
 			} else {
-				repository.saveAnswer(Answer(questionId = questionId, answerText = answer, candidateId = candidateId))
+				repository.saveAnswer(
+					Answer(
+						questionId = questionId,
+						answerText = answer,
+						candidateId = candidateId,
+						defaultAnswer = defaultAnswer))
 			}
 		}
 	}
@@ -67,14 +80,6 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 	fun clearAnswersForCandidate(candidateId: Long) {
 		viewModelScope.launch {
 			repository.deleteAnswersForCandidate(candidateId)
-		}
-	}
-
-	init {
-	    viewModelScope.launch {
-			repository.getAnswers().collect{
-				_answers.value = it
-			}
 		}
 	}
 }

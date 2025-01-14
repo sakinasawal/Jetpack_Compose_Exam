@@ -307,7 +307,7 @@ fun saveAnswerForCurrentQuestion(
 	candidateId : Long,
 	viewModel: TestViewModel
 ) {
-	viewModel.saveAnswer(question.id, currentAnswer, candidateId)
+	viewModel.saveAnswer(question.id, currentAnswer, candidateId, question.defaultAnswer )
 }
 
 fun getSavedAnswer(

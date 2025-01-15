@@ -88,6 +88,7 @@ fun AdminTestScreen(
 			closeIcon = closeIcon,
 			closeIconColor = closeIconColor,
 			doneIconColor = doneIconColor,
+			onDoneClick = {},
 			onLeftArrowClick = {
 				if (currentIndex > 0) {
 					currentIndex--

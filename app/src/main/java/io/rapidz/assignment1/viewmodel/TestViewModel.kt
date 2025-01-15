@@ -54,7 +54,7 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, questionType: QuestionType, defaultAnswer: String) {
 		viewModelScope.launch {
 			val score = when (questionType) {
-				QuestionType.FREE_TEXT -> "?" // Save '?' for FREE_TEXT type
+				QuestionType.FREE_TEXT -> "?"
 				else -> {
 					if (answer == defaultAnswer) 10.toString() else 0.toString()
 				}

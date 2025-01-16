@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -88,7 +89,31 @@ fun AdminTestScreen(
 			closeIcon = closeIcon,
 			closeIconColor = closeIconColor,
 			doneIconColor = doneIconColor,
-			onDoneClick = {},
+			onDoneClick = {
+				if (question.questionType == QuestionType.FREE_TEXT) {
+					viewModel.saveAnswer(
+						questionId = question.id,
+						answer = answer?.answerText.orEmpty(),
+						candidateId = candidateId,
+						questionType = question.questionType,
+						defaultAnswer = question.defaultAnswer,
+						adminScore = 10
+					)
+				}
+			},
+			onCloseClick = {
+				if (question.questionType == QuestionType.FREE_TEXT) {
+					viewModel.saveAnswer(
+						questionId = question.id,
+						answer = answer?.answerText.orEmpty(),
+						candidateId = candidateId,
+						questionType = question.questionType,
+						defaultAnswer = question.defaultAnswer,
+						adminScore = 0
+					)
+				}
+			},
+
 			onLeftArrowClick = {
 				if (currentIndex > 0) {
 					currentIndex--

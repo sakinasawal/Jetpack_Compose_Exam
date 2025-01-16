@@ -3,6 +3,7 @@ package io.rapidz.assignment1.admin
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,8 +37,15 @@ import io.rapidz.assignment1.ui.AppTypography
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
 import io.rapidz.assignment1.viewmodel.CandidateViewModelFactory
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.navigation.NavController
+import io.rapidz.assignment1.repository.TestRepository
 import io.rapidz.assignment1.ui.*
+import io.rapidz.assignment1.viewmodel.TestViewModel
+import io.rapidz.assignment1.viewmodel.TestViewModelFactory
+import kotlinx.coroutines.delay
 
 @Composable
 fun AdminHomeScreen(navController : NavController ?= null) {
@@ -49,11 +57,43 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 	val viewModel: CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository))
 	var candidates by remember { mutableStateOf<List<Candidate>>(emptyList()) }
 
+	val answerRepository = remember { TestRepository(database.answerDao()) }
+	val answerViewModel: TestViewModel = viewModel(factory = TestViewModelFactory(answerRepository))
+	var totalScore by remember { mutableStateOf("?") }
+
+	var displayedCandidates by remember { mutableStateOf<List<Candidate>>(emptyList()) }
+	var searchQuery by remember { mutableStateOf("") }
+
+	val focusManager = LocalFocusManager.current
+	val keyboardController = LocalSoftwareKeyboardController.current
+
 	val timeLimit = stringResource(id = R.string.time_limit_admin)
 
 	LaunchedEffect(Unit) {
 		viewModel.getAllCandidates { fetchedCandidates ->
 			candidates = fetchedCandidates
+			displayedCandidates = fetchedCandidates
+
+			val scores = fetchedCandidates.map { candidate ->
+				answerViewModel.getCandidateScore(candidate.id)
+			}
+
+			totalScore = if (scores.contains("?")) {
+				"?"
+			} else {
+				scores.filterIsInstance<Int>().sum().toString()
+			}
+		}
+	}
+
+	LaunchedEffect(searchQuery) {
+		if (searchQuery.isNotEmpty()) {
+			delay(2000)
+			displayedCandidates = candidates.filter { candidate ->
+				candidate.name.contains(searchQuery, ignoreCase = true)
+			}
+		} else {
+			displayedCandidates = candidates
 		}
 	}
 
@@ -62,7 +102,13 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 			modifier = Modifier
 				.fillMaxSize()
 				.background(color = Color.White)
-				.padding(all = spacing_20),
+				.padding(all = spacing_20)
+				.pointerInput(Unit) {
+					detectTapGestures(onTap = {
+						keyboardController?.hide()
+						focusManager.clearFocus()
+					})
+				},
 			verticalArrangement = Arrangement.spacedBy(spacing_20),
 			horizontalAlignment = Alignment.Start
 		){
@@ -83,8 +129,10 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 			)
 
 			InputTextField(
-				value = "",
-				onValueChange = {},
+				value = searchQuery,
+				onValueChange = { newQuery ->
+					searchQuery = newQuery
+				},
 				placeholder = stringResource(id = R.string.search)
 			)
 
@@ -98,11 +146,12 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 					.fillMaxWidth(),
 				verticalArrangement = Arrangement.spacedBy(spacing_8)
 			) {
-				items(candidates) { candidate ->
+				items(displayedCandidates) { candidate ->
+					val candidateScore = answerViewModel.getCandidateScore(candidate.id)
 					TableRow(
 						time = "000m",
 						name = candidate.name,
-						score = "?",
+						score = candidateScore,
 						onClick = {
 							navController?.navigate("AdminTest/${candidate.id}")
 						}

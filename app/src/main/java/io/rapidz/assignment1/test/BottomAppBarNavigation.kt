@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import io.rapidz.assignment1.*
 import io.rapidz.assignment1.ui.*
@@ -138,7 +139,7 @@ fun BottomAppBar(
 
 @SuppressLint("DefaultLocale")
 @Composable
-fun CountdownText(milliseconds : Long){
+fun CountdownText(milliseconds : Long, style: TextStyle = MaterialTheme.typography.bodyLarge){
 	val minutes = (milliseconds/1000) / 60
 	val seconds = (milliseconds / 1000) % 60
 	val isCritical = milliseconds <= 60000L
@@ -146,7 +147,7 @@ fun CountdownText(milliseconds : Long){
 	Text(
 		text = String.format("%02dm:%02ds", minutes, seconds),
 		color = if (isCritical) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-		style = MaterialTheme.typography.bodyLarge
+		style = style,
 	)
 }
 
@@ -204,7 +205,10 @@ fun BottomAppBarAdmin(
 					if (showCountDownTimer){
 						Row{
 							Spacer(modifier = Modifier.width(spacing_20))
-							CountdownText(milliseconds = countdownMillis)
+							CountdownText(
+								milliseconds = countdownMillis,
+								style = MaterialTheme.typography.bodyMedium
+							)
 						}
 					}
 				},

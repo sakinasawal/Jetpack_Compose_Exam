@@ -51,13 +51,14 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 		)
 	)
 
-	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, questionType: QuestionType, defaultAnswer: String) {
+	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, questionType: QuestionType, defaultAnswer: String, adminScore: Int? = null) {
 		viewModelScope.launch {
-			val score = when (questionType) {
-				QuestionType.FREE_TEXT -> "?"
-				else -> {
+			val score = when {
+				questionType == QuestionType.FREE_TEXT && adminScore != null -> adminScore.toString()
+				questionType != QuestionType.FREE_TEXT -> {
 					if (answer == defaultAnswer) 10.toString() else 0.toString()
 				}
+				else -> "?"
 			}
 			val existingAnswer = _answers.value.find { it.questionId == questionId && it.candidateId == candidateId }
 			if (existingAnswer != null) {
@@ -77,6 +78,15 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 			}
 		}
 		return answersFlow
+	}
+
+	fun getCandidateScore(candidateId: Long): String {
+		val candidateAnswers = _answers.value.filter { it.candidateId == candidateId }
+		return if (candidateAnswers.any { it.score == "?" }) {
+			"?"
+		} else {
+			candidateAnswers.sumOf { it.score.toIntOrNull() ?: 0 }.toString()
+		}
 	}
 
 	fun clearAnswersForCandidate(candidateId: Long) {

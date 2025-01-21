@@ -61,31 +61,34 @@ fun AdminTestScreen(
 			else -> false
 		}
 
-		val showDoneIcon = when (question.questionType) {
-			QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE -> isAnswerCorrect
-			QuestionType.FREE_TEXT -> true
+		var isDoneClicked by remember { mutableStateOf(false) }
+		var isCloseClicked by remember { mutableStateOf(false) }
+
+		val (doneIconVisible, doneIconColor) = when (question.questionType) {
+			QuestionType.FREE_TEXT -> {
+				when {
+					isDoneClicked -> Pair(true, Color(0xFF018786))
+					isCloseClicked -> Pair(false, Color.Black)
+					else -> Pair(true, Color.Black)
+				}
+			}
+			else -> Pair(isAnswerCorrect, Color(0xFF018786))
 		}
 
-		val showCloseIcon = when (question.questionType) {
-			QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE -> !isAnswerCorrect
-			QuestionType.FREE_TEXT -> true
+		val (closeIconVisible, closeIcon, closeIconColor) = when (question.questionType) {
+			QuestionType.FREE_TEXT -> {
+				when {
+					isCloseClicked -> Triple(true, Icons.Default.Dangerous, md_theme_admin_error)
+					isDoneClicked -> Triple(false, Icons.Default.Close, Color.Black)
+					else -> Triple(true, Icons.Default.Close, Color.Black)
+				}
+			}
+			else -> Triple(!isAnswerCorrect, Icons.Default.Dangerous, md_theme_admin_error)
 		}
-
-		val closeIcon = when (question.questionType) {
-			QuestionType.FREE_TEXT -> Icons.Default.Close
-			else -> if (isAnswerCorrect) Icons.Default.Close else Icons.Default.Dangerous
-		}
-
-		val closeIconColor = when (question.questionType) {
-			QuestionType.FREE_TEXT -> Color.Black
-			else -> if (isAnswerCorrect) Color.Black else md_theme_admin_error
-		}
-
-		val doneIconColor = if (isAnswerCorrect) Color(0xFF018786) else Color.Black
 
 		BottomAppBarAdmin(
-			showDoneIcon = showDoneIcon,
-			showCloseIcon = showCloseIcon,
+			showDoneIcon = doneIconVisible,
+			showCloseIcon = closeIconVisible,
 			closeIcon = closeIcon,
 			closeIconColor = closeIconColor,
 			doneIconColor = doneIconColor,
@@ -99,6 +102,8 @@ fun AdminTestScreen(
 						defaultAnswer = question.defaultAnswer,
 						adminScore = 10
 					)
+					isDoneClicked = true
+					isCloseClicked = false
 				}
 			},
 			onCloseClick = {
@@ -111,6 +116,8 @@ fun AdminTestScreen(
 						defaultAnswer = question.defaultAnswer,
 						adminScore = 0
 					)
+					isCloseClicked = true
+					isDoneClicked = false
 				}
 			},
 

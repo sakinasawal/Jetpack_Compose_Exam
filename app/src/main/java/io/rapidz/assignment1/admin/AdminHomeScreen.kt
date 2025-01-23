@@ -188,6 +188,26 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 	}
 }
 
+@Composable
+fun GifImage(
+	url : String,
+
+){
+	val context = LocalContext.current
+
+	AsyncImage(
+		model = ImageRequest.Builder(LocalContext.current)
+			.data(url)
+			.crossfade(true)
+			.decoderFactory(GifDecoder.Factory())
+			.build(),
+		contentDescription = null,
+		modifier = Modifier
+			.fillMaxSize(),
+		contentScale = ContentScale.Crop
+	)
+
+}
 @SuppressLint("ModifierParameter")
 @Composable
 fun TableHeader(

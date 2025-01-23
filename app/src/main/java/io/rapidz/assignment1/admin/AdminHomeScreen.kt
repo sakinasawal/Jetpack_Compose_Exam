@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
@@ -45,9 +44,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import io.rapidz.assignment1.repository.TestRepository
 import io.rapidz.assignment1.ui.*
+import io.rapidz.assignment1.utils.Constants.URL.URL
 import io.rapidz.assignment1.viewmodel.TestViewModel
 import io.rapidz.assignment1.viewmodel.TestViewModelFactory
 import kotlinx.coroutines.delay
@@ -140,8 +141,9 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 			if (showGif) {
 				AsyncImage(
 					model = ImageRequest.Builder(LocalContext.current)
-						.data("https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdndkN3d1ZHFobGV2OG8ycnQ2c3Q3MzRta2NsdHVra3Jub2l6dHEyMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/S2IfEQqgWc0AH4r6Al/giphy.gif")
+						.data(URL)
 						.crossfade(true)
+						.decoderFactory(GifDecoder.Factory())
 						.build(),
 					contentDescription = null,
 					modifier = Modifier

@@ -87,6 +87,9 @@ dependencies {
 	implementation("com.google.dagger:hilt-android:2.49")
 	kapt("com.google.dagger:hilt-android-compiler:2.49")
 
+	// Coil
+	implementation("io.coil-kt:coil-compose:2.4.0")
+	implementation("io.coil-kt:coil-gif:2.4.0")
 }
 
 // Allow references to generated code

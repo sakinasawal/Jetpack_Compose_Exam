@@ -7,8 +7,10 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
@@ -38,9 +40,12 @@ import io.rapidz.assignment1.viewmodel.CandidateViewModel
 import io.rapidz.assignment1.viewmodel.CandidateViewModelFactory
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import io.rapidz.assignment1.repository.TestRepository
 import io.rapidz.assignment1.ui.*
 import io.rapidz.assignment1.viewmodel.TestViewModel
@@ -61,6 +66,7 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 	val answerViewModel: TestViewModel = viewModel(factory = TestViewModelFactory(answerRepository))
 	var totalScore by remember { mutableStateOf("?") }
 
+	var showGif by remember { mutableStateOf(true) }
 	var displayedCandidates by remember { mutableStateOf<List<Candidate>>(emptyList()) }
 	var searchQuery by remember { mutableStateOf("") }
 
@@ -70,6 +76,9 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 	val timeLimit = stringResource(id = R.string.time_limit_admin)
 
 	LaunchedEffect(Unit) {
+		delay(5000)
+		showGif = false
+
 		viewModel.getAllCandidates { fetchedCandidates ->
 			candidates = fetchedCandidates
 			displayedCandidates = fetchedCandidates
@@ -128,34 +137,49 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 				modifier = Modifier.padding(top = spacing_20)
 			)
 
-			InputTextField(
-				value = searchQuery,
-				onValueChange = { newQuery ->
-					searchQuery = newQuery
-				},
-				placeholder = stringResource(id = R.string.search)
-			)
+			if (showGif) {
+				AsyncImage(
+					model = ImageRequest.Builder(LocalContext.current)
+						.data("https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdndkN3d1ZHFobGV2OG8ycnQ2c3Q3MzRta2NsdHVra3Jub2l6dHEyMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/S2IfEQqgWc0AH4r6Al/giphy.gif")
+						.crossfade(true)
+						.build(),
+					contentDescription = null,
+					modifier = Modifier
+						.fillMaxWidth()
+						.fillMaxHeight()
+						.align(Alignment.CenterHorizontally),
+					contentScale = ContentScale.Crop
+				)
+			} else {
+				InputTextField(
+					value = searchQuery,
+					onValueChange = { newQuery ->
+						searchQuery = newQuery
+					},
+					placeholder = stringResource(id = R.string.search)
+				)
 
-			TableHeader(
-				headers = listOf("Time", "Name", "Score"),
-				weights = listOf(1f, 2f, 1f)
-			)
+				TableHeader(
+					headers = listOf("Time", "Name", "Score"),
+					weights = listOf(1f, 2f, 1f)
+				)
 
-			LazyColumn(
-				modifier = Modifier
-					.fillMaxWidth(),
-				verticalArrangement = Arrangement.spacedBy(spacing_8)
-			) {
-				items(displayedCandidates) { candidate ->
-					val candidateScore = answerViewModel.getCandidateScore(candidate.id)
-					TableRow(
-						time = "000m",
-						name = candidate.name,
-						score = candidateScore,
-						onClick = {
-							navController?.navigate("AdminTest/${candidate.id}")
-						}
-					)
+				LazyColumn(
+					modifier = Modifier
+						.fillMaxWidth(),
+					verticalArrangement = Arrangement.spacedBy(spacing_8)
+				) {
+					items(displayedCandidates) { candidate ->
+						val candidateScore = answerViewModel.getCandidateScore(candidate.id)
+						TableRow(
+							time = "000m",
+							name = candidate.name,
+							score = candidateScore,
+							onClick = {
+								navController?.navigate("AdminTest/${candidate.id}")
+							}
+						)
+					}
 				}
 			}
 		}

@@ -18,6 +18,7 @@
 	<string name="taken_tests">Taken Tests</string>
 	<string name="search">Search</string>
 	<string name="admin_taken_tests">Admin Taken Tests</string>
+	<string name="defaultTime">30</string>
 
 	<!-- Dialog -->
 	<string name="test_screen">Test Screen</string>

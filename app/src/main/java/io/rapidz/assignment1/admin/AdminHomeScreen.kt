@@ -38,6 +38,7 @@ import io.rapidz.assignment1.ui.AppTypography
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
 import io.rapidz.assignment1.viewmodel.CandidateViewModelFactory
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
@@ -49,6 +50,8 @@ import coil.request.ImageRequest
 import io.rapidz.assignment1.repository.TestRepository
 import io.rapidz.assignment1.ui.*
 import io.rapidz.assignment1.utils.Constants.URL.URL
+import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModel
+import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModelFactory
 import io.rapidz.assignment1.viewmodel.TestViewModel
 import io.rapidz.assignment1.viewmodel.TestViewModelFactory
 import kotlinx.coroutines.delay
@@ -63,6 +66,10 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 	val viewModel: CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository))
 	var candidates by remember { mutableStateOf<List<Candidate>>(emptyList()) }
 
+	val candidateDataStoreViewModel: CandidateDataStoreViewModel = viewModel(
+		factory = CandidateDataStoreViewModelFactory(context)
+	)
+
 	val answerRepository = remember { TestRepository(database.answerDao()) }
 	val answerViewModel: TestViewModel = viewModel(factory = TestViewModelFactory(answerRepository))
 	var totalScore by remember { mutableStateOf("?") }
@@ -71,13 +78,15 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 	var displayedCandidates by remember { mutableStateOf<List<Candidate>>(emptyList()) }
 	var searchQuery by remember { mutableStateOf("") }
 
+	var testTimeLimit by remember { mutableStateOf("30") }
+
 	val focusManager = LocalFocusManager.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 
 	val timeLimit = stringResource(id = R.string.time_limit_admin)
 
 	LaunchedEffect(Unit) {
-		delay(5000)
+		delay(2000)
 		showGif = false
 
 		viewModel.getAllCandidates { fetchedCandidates ->
@@ -94,6 +103,11 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 				scores.filterIsInstance<Int>().sum().toString()
 			}
 		}
+
+		snapshotFlow { testTimeLimit }
+			.collect { timeLimit ->
+				candidateDataStoreViewModel.saveTestTimeLimit(context, timeLimit)
+			}
 	}
 
 	LaunchedEffect(searchQuery) {
@@ -128,9 +142,14 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 			)
 
 			InputTextFieldAdmin(
-				value = "30",
-				onValueChange = {},
-				label = timeLimit
+				value = testTimeLimit,
+				onValueChange = { newValue ->
+					if (newValue.all { it.isDigit() }) {
+						testTimeLimit = newValue
+					}
+				},
+				label = timeLimit,
+				placeholder = stringResource(id = R.string.defaultTime)
 			)
 
 			TextLabel(
@@ -139,19 +158,7 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 			)
 
 			if (showGif) {
-				AsyncImage(
-					model = ImageRequest.Builder(LocalContext.current)
-						.data(URL)
-						.crossfade(true)
-						.decoderFactory(GifDecoder.Factory())
-						.build(),
-					contentDescription = null,
-					modifier = Modifier
-						.fillMaxWidth()
-						.fillMaxHeight()
-						.align(Alignment.CenterHorizontally),
-					contentScale = ContentScale.Crop
-				)
+				GifImage(URL)
 			} else {
 				InputTextField(
 					value = searchQuery,
@@ -189,12 +196,8 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 }
 
 @Composable
-fun GifImage(
-	url : String,
-
-){
-	val context = LocalContext.current
-
+fun GifImage(url : String)
+{
 	AsyncImage(
 		model = ImageRequest.Builder(LocalContext.current)
 			.data(url)
@@ -206,8 +209,8 @@ fun GifImage(
 			.fillMaxSize(),
 		contentScale = ContentScale.Crop
 	)
-
 }
+
 @SuppressLint("ModifierParameter")
 @Composable
 fun TableHeader(

@@ -3,6 +3,7 @@ package io.rapidz.assignment1
 import android.annotation.SuppressLint
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Done
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 
@@ -66,13 +68,16 @@ fun InputTextFieldAdmin(
 	value : String,
 	onValueChange : (String)->Unit,
 	label: String,
+	placeholder: String,
 	modifier : Modifier = Modifier,
 ){
 	TextField(
 		value = value,
 		onValueChange = onValueChange,
 		modifier = modifier.fillMaxWidth(),
-		label = { Text(label) }
+		label = { Text(label) },
+		placeholder = { Text(placeholder) },
+		keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
 	)
 }
 

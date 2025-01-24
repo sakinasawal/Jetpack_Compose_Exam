@@ -1,13 +1,14 @@
 package io.rapidz.assignment1.admin
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,6 +39,8 @@ import io.rapidz.assignment1.ui.AppTypography
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
 import io.rapidz.assignment1.viewmodel.CandidateViewModelFactory
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -78,7 +81,8 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 	var displayedCandidates by remember { mutableStateOf<List<Candidate>>(emptyList()) }
 	var searchQuery by remember { mutableStateOf("") }
 
-	var testTimeLimit by remember { mutableStateOf("30") }
+	val savedTimeLimit by candidateDataStoreViewModel.testTimeLimit.collectAsState(initial = 0)
+	var testTimeLimit by remember { mutableStateOf(savedTimeLimit) }
 
 	val focusManager = LocalFocusManager.current
 	val keyboardController = LocalSoftwareKeyboardController.current
@@ -103,10 +107,18 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 				scores.filterIsInstance<Int>().sum().toString()
 			}
 		}
+	}
 
+	LaunchedEffect(savedTimeLimit) {
+		if (testTimeLimit != savedTimeLimit) {
+			testTimeLimit = savedTimeLimit
+		}
+	}
+
+	LaunchedEffect(testTimeLimit) {
 		snapshotFlow { testTimeLimit }
-			.collect { timeLimit ->
-				candidateDataStoreViewModel.saveTestTimeLimit(context, timeLimit)
+			.collect { newTimeLimit ->
+				candidateDataStoreViewModel.saveTestTimeLimit(context, newTimeLimit)
 			}
 	}
 
@@ -144,9 +156,7 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 			InputTextFieldAdmin(
 				value = testTimeLimit,
 				onValueChange = { newValue ->
-					if (newValue.all { it.isDigit() }) {
-						testTimeLimit = newValue
-					}
+					testTimeLimit = newValue
 				},
 				label = timeLimit,
 				placeholder = stringResource(id = R.string.defaultTime)
@@ -158,7 +168,7 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 			)
 
 			if (showGif) {
-				GifImage(URL)
+				GifImage(context, URL)
 			} else {
 				InputTextField(
 					value = searchQuery,
@@ -196,10 +206,9 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 }
 
 @Composable
-fun GifImage(url : String)
-{
+fun GifImage(context : Context, url : String) {
 	AsyncImage(
-		model = ImageRequest.Builder(LocalContext.current)
+		model = ImageRequest.Builder(context)
 			.data(url)
 			.crossfade(true)
 			.decoderFactory(GifDecoder.Factory())

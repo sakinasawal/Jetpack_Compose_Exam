@@ -13,7 +13,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -63,20 +66,28 @@ fun InputTextField(
 	)
 }
 
+@SuppressLint("ModifierParameter")
 @Composable
 fun InputTextFieldAdmin(
-	value : String,
-	onValueChange : (String)->Unit,
-	label: String,
-	placeholder: String,
+    value : Int,
+    onValueChange : (Int)->Unit,
+    label: String,
+    placeholder: String,
 	modifier : Modifier = Modifier,
 ){
+	var textValue by remember(value) { mutableStateOf(if (value == 0) "" else value.toString()) }
+	println("DEBUG: TextField Value = $value")
 	TextField(
-		value = value,
-		onValueChange = onValueChange,
+		value = textValue,
+		onValueChange = { newValue ->
+			if (newValue.all { it.isDigit() }) {
+				textValue = newValue
+				onValueChange(newValue.toIntOrNull() ?: 0)
+			}
+		},
 		modifier = modifier.fillMaxWidth(),
 		label = { Text(label) },
-		placeholder = { Text(placeholder) },
+		placeholder = {Text(placeholder)},
 		keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
 	)
 }

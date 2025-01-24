@@ -17,8 +17,8 @@ class CandidateDataStoreViewModel(context: Context) : ViewModel() {
 	private val _email = MutableStateFlow("")
 	val email: StateFlow<String> = _email
 
-	private val _testTimeLimit = MutableStateFlow("30")
-	val testTimeLimit: StateFlow<String> = _testTimeLimit
+	private val _testTimeLimit = MutableStateFlow(0)
+	val testTimeLimit: StateFlow<Int> = _testTimeLimit
 
 	init {
 		viewModelScope.launch {
@@ -33,7 +33,7 @@ class CandidateDataStoreViewModel(context: Context) : ViewModel() {
 		}
 		viewModelScope.launch {
 			DataStoreManager.getTestTimeLimit(context).collect { value ->
-				_testTimeLimit.value = value ?: "30"
+				_testTimeLimit.value = value
 			}
 		}
 	}
@@ -44,7 +44,7 @@ class CandidateDataStoreViewModel(context: Context) : ViewModel() {
 		}
 	}
 
-	fun saveTestTimeLimit(context: Context, timeLimit: String) {
+	fun saveTestTimeLimit(context: Context, timeLimit: Int) {
 		viewModelScope.launch {
 			DataStoreManager.saveTestTimeLimit(context, timeLimit)
 		}

@@ -169,8 +169,7 @@ fun AdminTestScreen(
 						answer?.let {
 							Textarea(
 								initialText = it.answerText,
-								readOnly = true,
-								onAnswerChange = {}
+								readOnly = true
 							)
 						}
 					}

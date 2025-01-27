@@ -85,8 +85,7 @@ fun BottomAppBarGeneral() {
 
 @Composable
 fun BottomAppBar(
-	showCountDownTimer : Boolean = true,
-	countdownMillis : Long = 0L,
+	timer: String? = "",
 	onLeftDoubleArrowClick : () -> Unit? = {},
 	onLeftArrowClick : () -> Unit? = {},
 	onRightArrowClick : () -> Unit? = {},
@@ -110,11 +109,12 @@ fun BottomAppBar(
 					IconButton(onClick = { onRightDoubleArrowClick()}) {
 						Icon(Icons.Default.KeyboardDoubleArrowRight, null)
 					}
-					if (showCountDownTimer){
-						Row{
-							Spacer(modifier = Modifier.width(spacing_20))
-							CountdownText(milliseconds = countdownMillis)
-						}
+					Row{
+						Spacer(modifier = Modifier.width(spacing_20))
+						Text(
+							text = timer!!,
+							style = MaterialTheme.typography.bodyMedium
+						)
 					}
 				},
 				floatingActionButton = {

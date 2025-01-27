@@ -2,6 +2,7 @@ package io.rapidz.assignment1.test
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,8 +21,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
@@ -35,6 +39,7 @@ import io.rapidz.assignment1.TextLabelTitle
 import io.rapidz.assignment1.data.Answer
 import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
+import io.rapidz.assignment1.formatMinutesToTime
 import io.rapidz.assignment1.navigate
 import io.rapidz.assignment1.repository.TestRepository
 import io.rapidz.assignment1.spacing_1
@@ -45,6 +50,8 @@ import io.rapidz.assignment1.spacing_8
 import io.rapidz.assignment1.storage.AppDatabase
 import io.rapidz.assignment1.ui.DefaultTheme
 import io.rapidz.assignment1.ui.*
+import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModel
+import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModelFactory
 import io.rapidz.assignment1.viewmodel.TestViewModel
 import io.rapidz.assignment1.viewmodel.TestViewModelFactory
 
@@ -67,6 +74,14 @@ fun TestScreenBottomNav(
 
 	var showEndOfTestDialog by remember { mutableStateOf(false) }
 
+	val candidateDataStoreViewModel: CandidateDataStoreViewModel = viewModel(
+		factory = CandidateDataStoreViewModelFactory(context)
+	)
+
+	val testTimeLimit by candidateDataStoreViewModel.testTimeLimit.collectAsState(initial = 0)
+
+	val formattedTimer = formatMinutesToTime(testTimeLimit)
+
 	LaunchedEffect(usePreviousData) {
 		if (usePreviousData) {
 			currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
@@ -77,6 +92,7 @@ fun TestScreenBottomNav(
 
 	DefaultTheme {
 		BottomAppBar(
+			timer = formattedTimer,
 			onLeftArrowClick = {
 				if (!isQuestionComplete(questions[currentIndex.intValue], currentAnswer)){
 					dialogType = DialogType.QUESTION_NOT_COMPLETE
@@ -275,12 +291,15 @@ fun CheckBoxAnswer(options: List<String>, currentAnswer: String, onAnswerChange:
 fun Textarea(
 	initialText: String = "",
 	readOnly: Boolean = false,
-	onAnswerChange: (String) -> Unit
+	onAnswerChange: (String) -> Unit = {}
 ) {
 	var text by remember { mutableStateOf(initialText) }
 
 	val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 	val dynamicHeight = screenHeight * 0.65f
+
+	val focusManager = LocalFocusManager.current
+	val keyboardController = LocalSoftwareKeyboardController.current
 
 	TextField(
 		value = text,
@@ -294,7 +313,12 @@ fun Textarea(
 			.fillMaxWidth()
 			.heightIn(min = dynamicHeight)
 			.padding(spacing_4)
-			.border(width = spacing_1, color = Color.Black),
+			.border(width = spacing_1, color = Color.Black)
+			.pointerInput(Unit) {
+				detectTapGestures(onTap = {
+					keyboardController?.hide()
+					focusManager.clearFocus() })
+			},
 		readOnly = readOnly
 	)
 }

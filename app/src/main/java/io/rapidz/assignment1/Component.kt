@@ -212,3 +212,10 @@ fun CountdownScreen(navController: NavController? = null) {
 
 	CountdownLogic(countdownState)
 }
+
+fun formatMinutesToTime(minutes: Int): String {
+	val totalSeconds = minutes * 60
+	val mins = totalSeconds / 60
+	val secs = totalSeconds % 60
+	return "${mins}m ${secs}s"
+}

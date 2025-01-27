@@ -195,27 +195,9 @@ fun EndTestAlertDialog(
 	)
 }
 
-@Composable
-fun CountdownLogic(countdownState: MutableState<Long>) {
-	LaunchedEffect(Unit) {
-		while (countdownState.value > 0) {
-			delay(1000) // Wait for 1 second
-			countdownState.value -= 1000 // Decrement by 1 second
-		}
-	}
-}
-
-@Composable
-fun CountdownScreen(navController: NavController? = null) {
-	val totalTimeMillis = 60 * 1000L // 1 minute in milliseconds
-	val countdownState = remember { mutableStateOf(totalTimeMillis) }
-
-	CountdownLogic(countdownState)
-}
-
-fun formatMinutesToTime(minutes: Int): String {
-	val totalSeconds = minutes * 60
-	val mins = totalSeconds / 60
-	val secs = totalSeconds % 60
-	return "${mins}m ${secs}s"
+@SuppressLint("DefaultLocale")
+fun formatSecondsToTime(seconds: Int): String {
+	val minutes = seconds / 60
+	val remainingSeconds = seconds % 60
+	return String.format("%02dm %02ds", minutes, remainingSeconds)
 }

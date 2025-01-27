@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import io.rapidz.assignment1.data.Candidate
-
 
 @Dao
 interface CandidateDao{
@@ -17,4 +17,10 @@ interface CandidateDao{
 
 	@Query("SELECT * FROM candidates")
 	suspend fun getAllCandidates(): List<Candidate>
+
+	@Query("SELECT * FROM candidates WHERE id = :candidateId LIMIT 1")
+	suspend fun getCandidateById(candidateId: Long): Candidate?
+
+	@Update
+	suspend fun updateCandidate(candidate: Candidate)
 }

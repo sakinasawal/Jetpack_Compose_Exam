@@ -10,7 +10,7 @@ import io.rapidz.assignment1.admin.AdminScreen
 import io.rapidz.assignment1.admin.AdminTestScreen
 import io.rapidz.assignment1.candidate.CandidateScreen
 import io.rapidz.assignment1.role.RoleSelectionScreen
-import io.rapidz.assignment1.test.TestScreenBottomNav
+import io.rapidz.assignment1.test.TestScreen
 
 sealed class Screen(val route: String, val content: @Composable (NavController, Bundle?) -> Unit) {
 
@@ -35,7 +35,7 @@ sealed class Screen(val route: String, val content: @Composable (NavController, 
 		val candidateId = arguments?.getString("candidateId")?.toLongOrNull()
 		val usePreviousData = arguments?.getString("usePreviousData")?.toBoolean() ?: false
 		if (candidateId != null) {
-			TestScreenBottomNav(navController = navController, candidateId = candidateId, usePreviousData = usePreviousData)
+			TestScreen(navController = navController, candidateId = candidateId, usePreviousData = usePreviousData)
 		} else {
 			error("Candidate ID is required.")
 		}

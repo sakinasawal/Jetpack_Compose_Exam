@@ -7,7 +7,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rapidz.assignment1.data.Answer
 import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
-import io.rapidz.assignment1.repository.CandidateRepository
 import io.rapidz.assignment1.repository.TestRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -6,7 +6,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,8 +25,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -39,9 +36,10 @@ import io.rapidz.assignment1.TextLabelTitle
 import io.rapidz.assignment1.data.Answer
 import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
-import io.rapidz.assignment1.formatMinutesToTime
+import io.rapidz.assignment1.formatSecondsToTime
 import io.rapidz.assignment1.navigate
 import io.rapidz.assignment1.repository.TestRepository
+import io.rapidz.assignment1.repository.TimerRepository
 import io.rapidz.assignment1.spacing_1
 import io.rapidz.assignment1.spacing_20
 import io.rapidz.assignment1.spacing_24
@@ -54,9 +52,12 @@ import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModel
 import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModelFactory
 import io.rapidz.assignment1.viewmodel.TestViewModel
 import io.rapidz.assignment1.viewmodel.TestViewModelFactory
+import io.rapidz.assignment1.viewmodel.TimerViewModel
+import io.rapidz.assignment1.viewmodel.TimerViewModelFactory
+import kotlinx.coroutines.delay
 
 @Composable
-fun TestScreenBottomNav(
+fun TestScreen(
 	navController: NavController? = null,
 	candidateId: Long,
 	usePreviousData: Boolean
@@ -69,9 +70,12 @@ fun TestScreenBottomNav(
 	val questions = viewModel.questions
 	val currentIndex = remember { mutableIntStateOf(0) }
 	var currentAnswer by remember { mutableStateOf("") }
-	var dialogType by remember { mutableStateOf<DialogType?>(null) }
 	val candidateAnswers by viewModel.getAnswersByCandidate(candidateId).collectAsState(initial = emptyList())
 
+	val timerRepository = remember { TimerRepository(database.timerDao())}
+	val timerViewModel : TimerViewModel = viewModel(factory = TimerViewModelFactory(timerRepository))
+
+	var dialogType by remember { mutableStateOf<DialogType?>(null) }
 	var showEndOfTestDialog by remember { mutableStateOf(false) }
 
 	val candidateDataStoreViewModel: CandidateDataStoreViewModel = viewModel(
@@ -80,7 +84,27 @@ fun TestScreenBottomNav(
 
 	val testTimeLimit by candidateDataStoreViewModel.testTimeLimit.collectAsState(initial = 0)
 
-	val formattedTimer = formatMinutesToTime(testTimeLimit)
+	var remainingTimeInSeconds by remember { mutableStateOf(testTimeLimit * 60)}
+
+	var timerStarted by remember { mutableStateOf(false) }
+
+	val formattedTimer = formatSecondsToTime(remainingTimeInSeconds)
+
+	LaunchedEffect(remainingTimeInSeconds, timerStarted) {
+		if (timerStarted && remainingTimeInSeconds > 0) {
+			while (remainingTimeInSeconds > 0) {
+				delay(1000L)
+				remainingTimeInSeconds--
+			}
+		}
+	}
+
+	LaunchedEffect(testTimeLimit) {
+		if (testTimeLimit > 0) {
+			remainingTimeInSeconds = testTimeLimit * 60
+			timerStarted = true
+		}
+	}
 
 	LaunchedEffect(usePreviousData) {
 		if (usePreviousData) {
@@ -88,6 +112,15 @@ fun TestScreenBottomNav(
 		} else {
 			viewModel.clearAnswersForCandidate(candidateId)
 		}
+	}
+
+	fun stopTimer() {
+		timerStarted = false
+		remainingTimeInSeconds = 0
+	}
+
+	fun saveTimer() {
+		timerViewModel.saveTimer(candidateId, remainingTimeInSeconds)
 	}
 
 	DefaultTheme {
@@ -200,6 +233,8 @@ fun TestScreenBottomNav(
 			DialogType.ALL_QUESTIONS_NOT_COMPLETE -> AllQuestionNotCompleteDialog(
 				onDismiss = { dialogType = null },
 				onEndTest = {
+					stopTimer()
+					saveTimer()
 					dialogType = null
 					showEndOfTestDialog = true
 				}
@@ -207,6 +242,8 @@ fun TestScreenBottomNav(
 			DialogType.ALL_QUESTIONS_COMPLETE -> AllQuestionCompleteDialog(
 				onDismiss = { dialogType = null },
 				onEndTest = {
+					stopTimer()
+					saveTimer()
 					dialogType = null
 					showEndOfTestDialog = true
 				}

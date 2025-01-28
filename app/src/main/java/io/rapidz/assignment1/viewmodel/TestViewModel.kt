@@ -20,6 +20,9 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 	private val _answers = MutableStateFlow<List<Answer>>(emptyList())
 	val answers : StateFlow<List<Answer>> = _answers
 
+	private val _candidateTimers = MutableStateFlow<Map<Long, Int>>(emptyMap())
+	val candidateTimers: StateFlow<Map<Long, Int>> = _candidateTimers
+
 	init {
 		viewModelScope.launch {
 			repository.getAnswers().collect{
@@ -50,7 +53,7 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 		)
 	)
 
-	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, questionType: QuestionType, defaultAnswer: String, adminScore: Int? = null) {
+	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, remainingTime: Int, questionType: QuestionType, defaultAnswer: String, adminScore: Int? = null) {
 		viewModelScope.launch {
 			val score = when {
 				questionType == QuestionType.FREE_TEXT && adminScore != null -> adminScore.toString()
@@ -61,10 +64,10 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 			}
 			val existingAnswer = _answers.value.find { it.questionId == questionId && it.candidateId == candidateId }
 			if (existingAnswer != null) {
-				repository.updateAnswer(existingAnswer.copy(answerText = answer, score = score))
+				repository.updateAnswer(existingAnswer.copy(answerText = answer, score = score, remainingTime = remainingTime))
 			} else {
 				repository.saveAnswer(
-					Answer(questionId = questionId, answerText = answer, candidateId = candidateId, defaultAnswer = defaultAnswer, score = score))
+					Answer(questionId = questionId, answerText = answer, candidateId = candidateId, defaultAnswer = defaultAnswer, score = score, remainingTime = remainingTime))
 			}
 		}
 	}
@@ -77,6 +80,16 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 			}
 		}
 		return answersFlow
+	}
+
+	fun getTimerForCandidate(candidateId: Long) {
+		viewModelScope.launch {
+			val timer = repository.getTimerForCandidate(candidateId) ?: 0
+			// Update the timer for the specific candidate
+			_candidateTimers.value = _candidateTimers.value.toMutableMap().apply {
+				put(candidateId, timer)
+			}
+		}
 	}
 
 	fun getCandidateScore(candidateId: Long): String {

@@ -1,7 +1,6 @@
 package io.rapidz.assignment1.test
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -23,63 +22,6 @@ import kotlinx.coroutines.*
 fun BottomAppBarPreview() {
 	DefaultTheme {
 		BottomAppBar()
-	}
-}
-
-@Preview
-@Composable
-fun BottomAppBarNavigationPreview(){
-	BottomAppBarGeneral()
-}
-
-@Composable
-fun BottomAppBarGeneral() {
-	val totalTimeMillis = 60 * 1000L // 1 minute in milliseconds
-	val countdownState = remember { mutableLongStateOf(totalTimeMillis) }
-
-	LaunchedEffect(Unit) {
-		while (countdownState.longValue > 0) {
-			delay(1000) // Wait for 1 second
-			countdownState.longValue -= 1000 // Decrement by 1 second
-		}
-	}
-
-	Scaffold(
-		bottomBar = {
-			BottomAppBar(
-				actions = {
-					IconButton(onClick = {}) {
-						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
-					}
-					IconButton(onClick = {}) {
-						Icon(Icons.Default.ChevronLeft, contentDescription = null)
-					}
-					IconButton(onClick = {}) {
-						Icon(Icons.Default.ChevronRight, contentDescription = null)
-					}
-					IconButton(onClick = {}) {
-						Icon(Icons.Default.KeyboardDoubleArrowRight, null)
-					}
-					Row{
-						Spacer(modifier = Modifier.width(spacing_20))
-						CountdownText(milliseconds = countdownState.longValue)
-					}
-				},
-				floatingActionButton = {
-					FloatingActionButton(
-						onClick = {},
-						elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-					) {
-						Icon(Icons.Default.DoneAll, null)
-					}
-				}
-			)
-		},
-	) { innerPadding ->
-		Text(
-			text = "Example of a scaffold with a bottom app bar.",
-			Modifier.padding(innerPadding)
-		)
 	}
 }
 
@@ -137,20 +79,6 @@ fun BottomAppBar(
 	}
 }
 
-@SuppressLint("DefaultLocale")
-@Composable
-fun CountdownText(milliseconds : Long, style: TextStyle = MaterialTheme.typography.bodyLarge){
-	val minutes = (milliseconds/1000) / 60
-	val seconds = (milliseconds / 1000) % 60
-	val isCritical = milliseconds <= 60000L
-
-	Text(
-		text = String.format("%02dm:%02ds", minutes, seconds),
-		color = if (isCritical) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-		style = style,
-	)
-}
-
 @Preview
 @Composable
 fun BottomAppBarAdminPreview() {
@@ -161,8 +89,6 @@ fun BottomAppBarAdminPreview() {
 
 @Composable
 fun BottomAppBarAdmin(
-	showCountDownTimer : Boolean = true,
-	countdownMillis : Long = 0L,
 	showDoneIcon: Boolean = true,
 	showCloseIcon: Boolean = true,
 	doneIconColor: Color = Color(0xFF018786),
@@ -202,14 +128,8 @@ fun BottomAppBarAdmin(
 					IconButton(onClick = { onRightDoubleArrowClick()}) {
 						Icon(Icons.Default.KeyboardDoubleArrowRight, null)
 					}
-					if (showCountDownTimer){
-						Row{
-							Spacer(modifier = Modifier.width(spacing_20))
-							CountdownText(
-								milliseconds = countdownMillis,
-								style = MaterialTheme.typography.bodyMedium
-							)
-						}
+					Row{
+						Spacer(modifier = Modifier.width(spacing_20))
 					}
 				},
 			)
@@ -221,68 +141,5 @@ fun BottomAppBarAdmin(
 				.verticalScroll(rememberScrollState())
 		)
 		content()
-	}
-}
-
-@Composable
-fun BottomNavBar(
-	countdownMillis: Long,
-	currentQuestionIndex : Int,
-	totalQuestions : Int,
-	onLeftDoubleArrowClick: () -> Unit,
-	onLeftArrowClick: () -> Unit,
-	onRightArrowClick: () -> Unit,
-	onRightDoubleArrowClick: () -> Unit,
-	onFloatingButtonClick: () -> Unit,
-	content : @Composable () -> Unit
-){
-	val isCountdownCritical = countdownMillis <= 60 * 1000L
-
-	val backgroundColor = if (isCountdownCritical) {
-		MaterialTheme.colorScheme.error
-	} else {
-		MaterialTheme.colorScheme.primary
-	}
-
-	val fabColor = if (isCountdownCritical) {
-		MaterialTheme.colorScheme.onError
-	} else {
-		MaterialTheme.colorScheme.primary
-	}
-
-	Scaffold(
-		bottomBar = {
-			BottomAppBar(
-				modifier = Modifier.background(backgroundColor),
-				actions = {
-					IconButton(onClick = { onLeftDoubleArrowClick() }, enabled = currentQuestionIndex > 0) {
-						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
-					}
-					IconButton(onClick = { onLeftArrowClick()}, enabled = currentQuestionIndex > 0) {
-						Icon(Icons.Default.ChevronLeft, contentDescription = null)
-					}
-					IconButton(onClick = { onRightArrowClick() }, enabled = currentQuestionIndex < totalQuestions - 1) {
-						Icon(Icons.Default.ChevronRight, contentDescription = null)
-					}
-					IconButton(onClick = { onRightDoubleArrowClick() }, enabled = currentQuestionIndex < totalQuestions - 1) {
-						Icon(Icons.Default.KeyboardDoubleArrowRight, null)
-					}
-					Spacer(modifier = Modifier.width(spacing_20))
-					CountdownText(milliseconds = countdownMillis)
-				},
-				floatingActionButton = {
-					FloatingActionButton(
-						onClick = { onFloatingButtonClick() },
-						containerColor = fabColor
-					) {
-						Icon(Icons.Default.DoneAll, null)
-					}
-				}
-			)
-		}
-	) { innerPadding ->
-		Box(modifier = Modifier.padding(innerPadding)) {
-			content()
-		}
 	}
 }

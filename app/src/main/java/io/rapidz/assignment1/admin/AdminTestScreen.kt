@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.rapidz.assignment1.TextLabelTitle
 import io.rapidz.assignment1.data.QuestionType
+import io.rapidz.assignment1.formatSecondsToTime
 import io.rapidz.assignment1.repository.TestRepository
 import io.rapidz.assignment1.spacing_4
 import io.rapidz.assignment1.storage.AppDatabase
@@ -49,10 +50,12 @@ fun AdminTestScreen(
 	val questions = viewModel.questions
 	var currentIndex by remember { mutableIntStateOf(0) }
 
-	AdminTheme {
+	val question = questions[currentIndex]
+	val answer = candidateAnswers.find { it.questionId == question.id }
 
-		val question = questions[currentIndex]
-		val answer = candidateAnswers.find { it.questionId == question.id }
+	val remainingTime = answer?.remainingTime ?: 0
+
+	AdminTheme {
 
 		val isAnswerCorrect = when (question.questionType) {
 			QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE -> {
@@ -98,6 +101,7 @@ fun AdminTestScreen(
 						questionId = question.id,
 						answer = answer?.answerText.orEmpty(),
 						candidateId = candidateId,
+						remainingTime = remainingTime,
 						questionType = question.questionType,
 						defaultAnswer = question.defaultAnswer,
 						adminScore = 10
@@ -112,6 +116,7 @@ fun AdminTestScreen(
 						questionId = question.id,
 						answer = answer?.answerText.orEmpty(),
 						candidateId = candidateId,
+						remainingTime = remainingTime,
 						questionType = question.questionType,
 						defaultAnswer = question.defaultAnswer,
 						adminScore = 0
@@ -120,7 +125,6 @@ fun AdminTestScreen(
 					isDoneClicked = false
 				}
 			},
-
 			onLeftArrowClick = {
 				if (currentIndex > 0) {
 					currentIndex--

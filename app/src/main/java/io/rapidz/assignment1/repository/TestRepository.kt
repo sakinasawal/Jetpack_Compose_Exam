@@ -26,4 +26,7 @@ class TestRepository @Inject constructor(private val answerDao: AnswerDao) {
 	suspend fun deleteAnswersForCandidate(candidateId: Long) {
 		answerDao.deleteAnswersByCandidate(candidateId)
 	}
+
+	suspend fun getTimerForCandidate(candidateId: Long): Int? =
+		answerDao.getTimerForCandidate(candidateId)
 }

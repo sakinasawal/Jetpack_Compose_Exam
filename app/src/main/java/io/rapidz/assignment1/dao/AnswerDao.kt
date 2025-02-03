@@ -25,6 +25,9 @@ interface AnswerDao {
 	@Query("DELETE FROM answers WHERE candidateId = :candidateId")
 	suspend fun deleteAnswersByCandidate(candidateId: Long)
 
+	@Query("SELECT SUM(totalTime) FROM answers WHERE candidateId = :candidateId")
+	suspend fun getTotalTimeTaken(candidateId: Long): Int
+
 	@Query("SELECT remainingTime FROM answers WHERE candidateId = :candidateId LIMIT 1")
 	suspend fun getTimerForCandidate(candidateId: Long): Int?
 }

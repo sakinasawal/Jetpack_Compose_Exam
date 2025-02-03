@@ -87,6 +87,8 @@ fun TestScreen(
 
 	val formattedTimer = formatSecondsToTime(remainingTimeInSeconds)
 
+	val initialTime = testTimeLimit * 60
+
 	LaunchedEffect(remainingTimeInSeconds, timerStarted) {
 		if (timerStarted && remainingTimeInSeconds > 0) {
 			while (remainingTimeInSeconds > 0) {
@@ -123,7 +125,7 @@ fun TestScreen(
 				if (!isQuestionComplete(questions[currentIndex.intValue], currentAnswer)){
 					dialogType = DialogType.QUESTION_NOT_COMPLETE
 				} else if (currentIndex.intValue > 0) {
-					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, remainingTimeInSeconds, viewModel)
+					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, remainingTimeInSeconds, initialTime, viewModel)
 					currentIndex.intValue--
 					currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
 				}
@@ -132,7 +134,7 @@ fun TestScreen(
 				if (!isQuestionComplete(questions[currentIndex.intValue], currentAnswer)) {
 					dialogType = DialogType.QUESTION_NOT_COMPLETE
 				} else {
-					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, remainingTimeInSeconds, viewModel)
+					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, remainingTimeInSeconds, initialTime, viewModel)
 					if (currentIndex.intValue == questions.size - 1) {
 						val allQuestionsComplete = questions.all { question ->
 							if (question.id == questions[currentIndex.intValue].id){
@@ -163,6 +165,7 @@ fun TestScreen(
 					currentAnswer = currentAnswer,
 					candidateId = candidateId,
 					remainingTimeInSeconds = remainingTimeInSeconds,
+					initialTime = initialTime,
 					viewModel = viewModel
 				)
 				currentIndex.intValue = questions.size - 1
@@ -212,7 +215,7 @@ fun TestScreen(
 		when (it) {
 			DialogType.QUESTION_NOT_COMPLETE -> QuestionNotCompleteDialog(
 				onProceed = {
-					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, remainingTimeInSeconds, viewModel)
+					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, remainingTimeInSeconds, initialTime, viewModel)
 					if(currentIndex.intValue == questions.size - 1){
 						dialogType = null
 						showEndOfTestDialog = true
@@ -363,9 +366,11 @@ fun saveAnswerForCurrentQuestion(
 	currentAnswer: String,
 	candidateId : Long,
 	remainingTimeInSeconds: Int,
+	initialTime: Int,
 	viewModel: TestViewModel,
 ) {
-	viewModel.saveAnswer(question.id, currentAnswer, candidateId, remainingTimeInSeconds, question.questionType, question.defaultAnswer)
+
+	viewModel.saveAnswer(question.id, currentAnswer, candidateId, remainingTimeInSeconds, initialTime, question.questionType, question.defaultAnswer)
 }
 
 fun getSavedAnswer(

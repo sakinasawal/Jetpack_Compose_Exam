@@ -12,5 +12,6 @@ data class Answer(
 	val candidateId : Long,
 	val defaultAnswer: String,
 	val score: String,
-	val remainingTime: Int
+	val remainingTime: Int,
+	val totalTime: Int
 )

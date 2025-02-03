@@ -29,4 +29,8 @@ class TestRepository @Inject constructor(private val answerDao: AnswerDao) {
 
 	suspend fun getTimerForCandidate(candidateId: Long): Int? =
 		answerDao.getTimerForCandidate(candidateId)
+
+	suspend fun getTotalTimeTaken(candidateId: Long): Int {
+		return answerDao.getTotalTimeTaken(candidateId)
+	}
 }

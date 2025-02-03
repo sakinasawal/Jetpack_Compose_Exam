@@ -1,5 +1,8 @@
 package io.rapidz.assignment1.viewmodel
 
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -9,7 +12,10 @@ import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.repository.TestRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,6 +28,9 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 
 	private val _candidateTimers = MutableStateFlow<Map<Long, Int>>(emptyMap())
 	val candidateTimers: StateFlow<Map<Long, Int>> = _candidateTimers
+
+	private val _totalTimeTaken = MutableStateFlow<Map<Long, Int>>(emptyMap())
+	val totalTimeTaken: StateFlow<Map<Long, Int>> = _totalTimeTaken
 
 	init {
 		viewModelScope.launch {
@@ -53,7 +62,7 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 		)
 	)
 
-	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, remainingTime: Int, questionType: QuestionType, defaultAnswer: String, adminScore: Int? = null) {
+	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, remainingTime: Int, initialTime : Int, questionType: QuestionType, defaultAnswer: String, adminScore: Int? = null) {
 		viewModelScope.launch {
 			val score = when {
 				questionType == QuestionType.FREE_TEXT && adminScore != null -> adminScore.toString()
@@ -63,13 +72,34 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 				else -> "?"
 			}
 			val existingAnswer = _answers.value.find { it.questionId == questionId && it.candidateId == candidateId }
+
+			val timeSpent = initialTime - remainingTime
+			val totalTimeForCandidate = _totalTimeTaken.value[candidateId] ?: 0
+			val totalTime = totalTimeForCandidate + timeSpent
+
 			if (existingAnswer != null) {
-				repository.updateAnswer(existingAnswer.copy(answerText = answer, score = score, remainingTime = remainingTime))
+				repository.updateAnswer(existingAnswer.copy(answerText = answer, score = score, remainingTime = remainingTime, totalTime = totalTime))
 			} else {
 				repository.saveAnswer(
-					Answer(questionId = questionId, answerText = answer, candidateId = candidateId, defaultAnswer = defaultAnswer, score = score, remainingTime = remainingTime))
+					Answer(questionId = questionId, answerText = answer, candidateId = candidateId, defaultAnswer = defaultAnswer, score = score, remainingTime = remainingTime, totalTime = totalTime))
+			}
+
+			val newTotalTime = totalTimeForCandidate + timeSpent
+			_totalTimeTaken.value = _totalTimeTaken.value.toMutableMap().apply {
+				put(candidateId, newTotalTime)
 			}
 		}
+	}
+
+	fun getTotalTimeTaken(candidateId: Long): StateFlow<Int> {
+		viewModelScope.launch {
+			val totalTime = repository.getTotalTimeTaken(candidateId)
+			_totalTimeTaken.value = _totalTimeTaken.value.toMutableMap().apply {
+				put(candidateId, totalTime)
+			}
+			Log.d("masuk", "$candidateId: $totalTime")
+		}
+		return MutableStateFlow(_totalTimeTaken.value[candidateId] ?: 0)
 	}
 
 	fun getAnswersByCandidate(candidateId: Long): StateFlow<List<Answer>> {

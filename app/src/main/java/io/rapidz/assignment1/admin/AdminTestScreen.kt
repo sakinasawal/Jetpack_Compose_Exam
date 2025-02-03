@@ -90,6 +90,7 @@ fun AdminTestScreen(
 		}
 
 		BottomAppBarAdmin(
+			timer = "",
 			showDoneIcon = doneIconVisible,
 			showCloseIcon = closeIconVisible,
 			closeIcon = closeIcon,
@@ -102,6 +103,7 @@ fun AdminTestScreen(
 						answer = answer?.answerText.orEmpty(),
 						candidateId = candidateId,
 						remainingTime = remainingTime,
+						initialTime = remainingTime,
 						questionType = question.questionType,
 						defaultAnswer = question.defaultAnswer,
 						adminScore = 10
@@ -117,6 +119,7 @@ fun AdminTestScreen(
 						answer = answer?.answerText.orEmpty(),
 						candidateId = candidateId,
 						remainingTime = remainingTime,
+						initialTime = remainingTime,
 						questionType = question.questionType,
 						defaultAnswer = question.defaultAnswer,
 						adminScore = 0

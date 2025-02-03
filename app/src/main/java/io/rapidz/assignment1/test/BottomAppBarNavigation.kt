@@ -89,6 +89,7 @@ fun BottomAppBarAdminPreview() {
 
 @Composable
 fun BottomAppBarAdmin(
+	timer: String? = "",
 	showDoneIcon: Boolean = true,
 	showCloseIcon: Boolean = true,
 	doneIconColor: Color = Color(0xFF018786),
@@ -130,6 +131,11 @@ fun BottomAppBarAdmin(
 					}
 					Row{
 						Spacer(modifier = Modifier.width(spacing_20))
+						Text(
+							text = timer!!,
+							style = MaterialTheme.typography.bodyLarge
+						)
+
 					}
 				},
 			)

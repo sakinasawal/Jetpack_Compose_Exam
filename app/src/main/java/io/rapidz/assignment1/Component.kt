@@ -87,7 +87,7 @@ fun InputTextFieldAdmin(
 		},
 		modifier = modifier.fillMaxWidth(),
 		label = { Text(label) },
-		placeholder = {Text(placeholder)},
+		placeholder = { Text(placeholder) },
 		keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
 	)
 }

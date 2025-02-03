@@ -40,6 +40,7 @@ import io.rapidz.assignment1.viewmodel.CandidateViewModel
 import io.rapidz.assignment1.viewmodel.CandidateViewModelFactory
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.input.pointer.pointerInput
@@ -196,8 +197,10 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 				) {
 					items(displayedCandidates) { candidate ->
 						val candidateScore = answerViewModel.getCandidateScore(candidate.id)
-						val timer = candidateTimers[candidate.id] ?: 0
-						val formattedTimer = formatSecondsToTime(timer)
+
+						val totalTimeTaken by answerViewModel.getTotalTimeTaken(candidate.id).collectAsState(0)
+						Log.d("masuk",totalTimeTaken.toString())
+						val formattedTimer = formatSecondsToTime(totalTimeTaken)
 
 						TableRow(
 							time = formattedTimer,

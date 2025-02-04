@@ -1,6 +1,5 @@
 package io.rapidz.assignment1.test
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,11 +10,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import io.rapidz.assignment1.*
 import io.rapidz.assignment1.ui.*
-import kotlinx.coroutines.*
 
 @Preview
 @Composable

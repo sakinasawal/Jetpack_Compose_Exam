@@ -58,17 +58,23 @@ fun AdminTestScreen(
 	val totalTimeSpent = answer?.totalTime ?: 0
 	val formattedTimeSpent = formatSecondsToTime(totalTimeSpent)
 
-	AdminTheme {
+	var isDoneClicked by remember { mutableStateOf(false) }
+	var isCloseClicked by remember { mutableStateOf(false) }
 
+	LaunchedEffect(answer) {
+		if (answer != null) {
+			isDoneClicked = answer.score == "10"
+			isCloseClicked = answer.score == "0"
+		}
+	}
+
+	AdminTheme {
 		val isAnswerCorrect = when (question.questionType) {
 			QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE -> {
 				answer?.answerText == question.defaultAnswer
 			}
 			else -> false
 		}
-
-		var isDoneClicked by remember { mutableStateOf(false) }
-		var isCloseClicked by remember { mutableStateOf(false) }
 
 		val (doneIconVisible, doneIconColor) = when (question.questionType) {
 			QuestionType.FREE_TEXT -> {

@@ -54,31 +54,38 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 		)
 	)
 
-	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, remainingTime: Int, initialTime : Int, questionType: QuestionType, defaultAnswer: String, adminScore: Int? = null) {
+	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, remainingTime: Int, initialTime : Int, questionType: QuestionType, defaultAnswer: String, adminScore: Int? = null, isAdmin : Boolean = false) {
 		viewModelScope.launch {
-			val score = when {
-				questionType == QuestionType.FREE_TEXT && adminScore != null -> adminScore.toString()
-				questionType != QuestionType.FREE_TEXT -> {
-					if (answer == defaultAnswer) 10.toString() else 0.toString()
-				}
-				else -> "?"
-			}
 			val existingAnswer = _answers.value.find { it.questionId == questionId && it.candidateId == candidateId }
 
-			val timeSpent = initialTime - remainingTime
-			val totalTimeForCandidate = _totalTimeTaken.value[candidateId] ?: 0
-			val totalTime = totalTimeForCandidate + timeSpent
-
-			if (existingAnswer != null) {
-				repository.updateAnswer(existingAnswer.copy(answerText = answer, score = score, remainingTime = remainingTime, totalTime = totalTime))
+			if (isAdmin) {
+				if (existingAnswer != null){
+					repository.updateAdminScore(questionId, candidateId, adminScore ?: 0)
+				}
 			} else {
-				repository.saveAnswer(
-					Answer(questionId = questionId, answerText = answer, candidateId = candidateId, defaultAnswer = defaultAnswer, score = score, remainingTime = remainingTime, totalTime = totalTime))
-			}
+				val score = when {
+					questionType == QuestionType.FREE_TEXT && adminScore != null -> adminScore.toString()
+					questionType != QuestionType.FREE_TEXT -> {
+						if (answer == defaultAnswer) 10.toString() else 0.toString()
+					}
+					else -> "?"
+				}
 
-			val newTotalTime = totalTimeForCandidate + timeSpent
-			_totalTimeTaken.value = _totalTimeTaken.value.toMutableMap().apply {
-				put(candidateId, newTotalTime)
+				val timeSpent = initialTime - remainingTime
+				val totalTimeForCandidate = _totalTimeTaken.value[candidateId] ?: 0
+				val totalTime = totalTimeForCandidate + timeSpent
+
+				if (existingAnswer != null) {
+					repository.updateAnswer(existingAnswer.copy(answerText = answer, score = score, remainingTime = remainingTime, totalTime = totalTime))
+				} else {
+					repository.saveAnswer(
+						Answer(questionId = questionId, answerText = answer, candidateId = candidateId, defaultAnswer = defaultAnswer, score = score, remainingTime = remainingTime, totalTime = totalTime))
+				}
+
+				val newTotalTime = totalTimeForCandidate + timeSpent
+				_totalTimeTaken.value = _totalTimeTaken.value.toMutableMap().apply {
+					put(candidateId, newTotalTime)
+				}
 			}
 		}
 	}

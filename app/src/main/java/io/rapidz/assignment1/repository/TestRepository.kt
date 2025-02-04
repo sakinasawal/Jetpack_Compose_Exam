@@ -33,4 +33,9 @@ class TestRepository @Inject constructor(private val answerDao: AnswerDao) {
 	suspend fun getTotalTimeTaken(candidateId: Long): Int {
 		return answerDao.getTotalTimeTaken(candidateId)
 	}
+
+	suspend fun updateAdminScore(questionId: Int, candidateId: Long, adminScore: Int) {
+		answerDao.updateAdminScore(questionId, candidateId, adminScore)
+	}
+
 }

@@ -55,9 +55,8 @@ fun AdminTestScreen(
 
 	val remainingTime = answer?.remainingTime ?: 0
 
-	val totalTimeTaken by viewModel.getTotalTimeTaken(candidateId).collectAsState()
-	val formattedTotalTime = formatSecondsToTime(totalTimeTaken)
-
+	val totalTimeSpent = answer?.totalTime ?: 0
+	val formattedTimeSpent = formatSecondsToTime(totalTimeSpent)
 
 	AdminTheme {
 
@@ -94,7 +93,7 @@ fun AdminTestScreen(
 		}
 
 		BottomAppBarAdmin(
-			timer = formattedTotalTime,
+			timer = formattedTimeSpent,
 			showDoneIcon = doneIconVisible,
 			showCloseIcon = closeIconVisible,
 			closeIcon = closeIcon,
@@ -110,7 +109,8 @@ fun AdminTestScreen(
 						initialTime = remainingTime,
 						questionType = question.questionType,
 						defaultAnswer = question.defaultAnswer,
-						adminScore = 10
+						adminScore = 10,
+						isAdmin = true
 					)
 					isDoneClicked = true
 					isCloseClicked = false
@@ -126,7 +126,8 @@ fun AdminTestScreen(
 						initialTime = remainingTime,
 						questionType = question.questionType,
 						defaultAnswer = question.defaultAnswer,
-						adminScore = 0
+						adminScore = 0,
+						isAdmin = true
 					)
 					isCloseClicked = true
 					isDoneClicked = false

@@ -231,8 +231,49 @@ fun TestScreen(
 		}
 	}
 
+	var showQuestionNotCompleteDialog by remember { mutableStateOf(false) }
+
 	BackHandler {
-		handleDialog()
+		if (!isQuestionComplete(questions[currentIndex.intValue], currentAnswer)) {
+			showQuestionNotCompleteDialog = true
+		} else {
+			// Save the answer for the current question
+			saveAnswerForCurrentQuestion(
+				questions[currentIndex.intValue],
+				currentAnswer,
+				candidateId,
+				remainingTimeInSeconds,
+				initialTime,
+				viewModel
+			)
+
+			dialogType = null
+			showEndOfTestDialog = true
+		}
+	}
+
+	if (showQuestionNotCompleteDialog) {
+		QuestionNotCompleteDialog(
+			onProceed = {
+				// Save the current answer (whether answered or not)
+				saveAnswerForCurrentQuestion(
+					questions[currentIndex.intValue],
+					currentAnswer,
+					candidateId,
+					remainingTimeInSeconds,
+					initialTime,
+					viewModel
+				)
+				// Do not increment the index, so stay on the current question
+				dialogType = null
+				showEndOfTestDialog = true
+				showQuestionNotCompleteDialog = false // Hide the dialog
+			},
+			onDismiss = {
+				// Dismiss the dialog and keep the user on the current question
+				showQuestionNotCompleteDialog = false
+			}
+		)
 	}
 
 	dialogType?.let {
@@ -243,7 +284,8 @@ fun TestScreen(
 					if(currentIndex.intValue == questions.size - 1){
 						dialogType = null
 						showEndOfTestDialog = true
-					} else {
+					}
+					else {
 						currentIndex.intValue++
 						currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
 						dialogType = null

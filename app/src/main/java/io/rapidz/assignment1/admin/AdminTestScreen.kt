@@ -55,6 +55,10 @@ fun AdminTestScreen(
 
 	val remainingTime = answer?.remainingTime ?: 0
 
+	val totalTimeTaken by viewModel.getTotalTimeTaken(candidateId).collectAsState()
+	val formattedTotalTime = formatSecondsToTime(totalTimeTaken)
+
+
 	AdminTheme {
 
 		val isAnswerCorrect = when (question.questionType) {
@@ -90,7 +94,7 @@ fun AdminTestScreen(
 		}
 
 		BottomAppBarAdmin(
-			timer = "",
+			timer = formattedTotalTime,
 			showDoneIcon = doneIconVisible,
 			showCloseIcon = closeIconVisible,
 			closeIcon = closeIcon,

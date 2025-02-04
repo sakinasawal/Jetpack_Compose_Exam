@@ -1,8 +1,5 @@
 package io.rapidz.assignment1.viewmodel
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -24,13 +21,8 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 ) : ViewModel() {
 
 	private val _answers = MutableStateFlow<List<Answer>>(emptyList())
-	val answers : StateFlow<List<Answer>> = _answers
-
 	private val _candidateTimers = MutableStateFlow<Map<Long, Int>>(emptyMap())
-	val candidateTimers: StateFlow<Map<Long, Int>> = _candidateTimers
-
 	private val _totalTimeTaken = MutableStateFlow<Map<Long, Int>>(emptyMap())
-	val totalTimeTaken: StateFlow<Map<Long, Int>> = _totalTimeTaken
 
 	init {
 		viewModelScope.launch {
@@ -97,9 +89,8 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 			_totalTimeTaken.value = _totalTimeTaken.value.toMutableMap().apply {
 				put(candidateId, totalTime)
 			}
-			Log.d("masuk", "$candidateId: $totalTime")
 		}
-		return MutableStateFlow(_totalTimeTaken.value[candidateId] ?: 0)
+		return _totalTimeTaken.map { it[candidateId] ?: 0 }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
 	}
 
 	fun getAnswersByCandidate(candidateId: Long): StateFlow<List<Answer>> {

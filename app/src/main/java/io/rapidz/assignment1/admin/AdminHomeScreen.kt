@@ -90,8 +90,6 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 
 	val timeLimit = stringResource(id = R.string.time_limit_admin)
 
-	val candidateTimers by answerViewModel.candidateTimers.collectAsState()
-
 	LaunchedEffect(Unit) {
 		delay(2000)
 		showGif = false
@@ -198,8 +196,7 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 					items(displayedCandidates) { candidate ->
 						val candidateScore = answerViewModel.getCandidateScore(candidate.id)
 
-						val totalTimeTaken by answerViewModel.getTotalTimeTaken(candidate.id).collectAsState(0)
-						Log.d("masuk",totalTimeTaken.toString())
+						val totalTimeTaken by answerViewModel.getTotalTimeTaken(candidate.id).collectAsState()
 						val formattedTimer = formatSecondsToTime(totalTimeTaken)
 
 						TableRow(

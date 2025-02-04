@@ -28,27 +28,27 @@ fun BottomAppBarPreview() {
 @Composable
 fun BottomAppBar(
 	timer: String? = "",
-	onLeftDoubleArrowClick : () -> Unit? = {},
-	onLeftArrowClick : () -> Unit? = {},
-	onRightArrowClick : () -> Unit? = {},
-	onRightDoubleArrowClick : () -> Unit? = {},
-	onFloatingButtonClick : () -> Unit? = {},
+	onLeftDoubleArrowClick : (() -> Unit)? = null,
+	onLeftArrowClick : (() -> Unit)? = null,
+	onRightArrowClick : (() -> Unit)? = null,
+	onRightDoubleArrowClick : (() -> Unit)? = null,
+	onFloatingButtonClick : (() -> Unit)? = null,
 	content: @Composable () -> Unit? = {}
 ) {
 	Scaffold(
 		bottomBar = {
 			BottomAppBar(
 				actions = {
-					IconButton(onClick = { onLeftDoubleArrowClick()}) {
+					IconButton(onClick = { onLeftDoubleArrowClick!!()}) {
 						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
 					}
-					IconButton(onClick = { onLeftArrowClick()}) {
+					IconButton(onClick = { onLeftArrowClick!!()}) {
 						Icon(Icons.Default.ChevronLeft, contentDescription = null)
 					}
-					IconButton(onClick = { onRightArrowClick()}) {
+					IconButton(onClick = { onRightArrowClick!!()}) {
 						Icon(Icons.Default.ChevronRight, contentDescription = null)
 					}
-					IconButton(onClick = { onRightDoubleArrowClick()}) {
+					IconButton(onClick = { onRightDoubleArrowClick!!()}) {
 						Icon(Icons.Default.KeyboardDoubleArrowRight, null)
 					}
 					Row{
@@ -61,7 +61,11 @@ fun BottomAppBar(
 				},
 				floatingActionButton = {
 					FloatingActionButton(
-						onClick = { onFloatingButtonClick() },
+						onClick = {
+							if (onFloatingButtonClick != null) {
+								onFloatingButtonClick()
+							}
+						},
 						elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
 					) {
 						Icon(Icons.Default.DoneAll, null)

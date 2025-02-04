@@ -1,5 +1,6 @@
 package io.rapidz.assignment1.test
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -118,6 +119,26 @@ fun TestScreen(
 		remainingTimeInSeconds = 0
 	}
 
+	fun handleDialog(){
+		when {
+			dialogType == null -> {
+				// If no dialog is already shown, decide which one to show
+				val allQuestionsComplete = questions.all { question ->
+					candidateAnswers.any { it.questionId == question.id && it.answerText.isNotEmpty() }
+				}
+				dialogType = if (allQuestionsComplete) {
+					DialogType.ALL_QUESTIONS_COMPLETE
+				} else {
+					DialogType.ALL_QUESTIONS_NOT_COMPLETE
+				}
+			}
+			else -> {
+				// If a dialog is already shown, dismiss it
+				dialogType = null
+			}
+		}
+	}
+
 	DefaultTheme {
 		BottomAppBar(
 			timer = formattedTimer,
@@ -157,7 +178,6 @@ fun TestScreen(
 			onLeftDoubleArrowClick = {
 				currentIndex.intValue = 0
 				currentAnswer = getSavedAnswer(questions[0], candidateAnswers)
-				Unit
 			},
 			onRightDoubleArrowClick = {
 				saveAnswerForCurrentQuestion(
@@ -170,8 +190,8 @@ fun TestScreen(
 				)
 				currentIndex.intValue = questions.size - 1
 				currentAnswer = getSavedAnswer(questions.last(), candidateAnswers)
-				Unit
-			}
+			},
+			onFloatingButtonClick = { handleDialog() }
 		){
 			Column(
 				modifier = Modifier
@@ -209,6 +229,10 @@ fun TestScreen(
 				}
 			}
 		}
+	}
+
+	BackHandler {
+		handleDialog()
 	}
 
 	dialogType?.let {
@@ -255,6 +279,7 @@ fun TestScreen(
 		)
 	}
 }
+
 
 // ================= Region Question Type =====================
 

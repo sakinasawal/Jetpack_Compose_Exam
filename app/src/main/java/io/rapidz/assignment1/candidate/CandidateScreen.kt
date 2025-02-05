@@ -102,13 +102,15 @@ fun CandidateScreen(navController: NavController? = null) {
 							val answersFlow = answerViewModel.getAnswersByCandidate(candidateId)
 							scope.launch {
 								answersFlow.collect { answers ->
-									// Not answered all question
-									if(answers.isNotEmpty() && answers.any { it.answerText.isEmpty() }){
-										showDialog = true
-										candidateIdForDialog = candidateId
-									} else {
-										// All questions are answered
-										Toast.makeText(context, "You have already completed the test.", Toast.LENGTH_LONG).show()
+									if(answers.isNotEmpty()){
+										// Not answered all question
+										if(answers.any { it.answerText.isEmpty() }){
+											showDialog = true
+											candidateIdForDialog = candidateId
+										} else {
+											// All questions are answered
+											Toast.makeText(context, "$storedName have already completed the test", Toast.LENGTH_SHORT).show()
+										}
 									}
 								}
 							}

@@ -83,32 +83,39 @@ fun TestScreen(
 	val formattedTimer = formatSecondsToTime(remainingTime)
 	val initialTime = testTimeLimit * 60
 
-	LaunchedEffect(candidateId) {
-		val savedRemainingTime = viewModel.getRemainingTimeForCandidate(candidateId)
-
-		remainingTime = if (savedRemainingTime > 0) {
-			savedRemainingTime // Resume from saved time
-		} else {
-			initialTime // Start fresh if no previous data
+	LaunchedEffect(candidateId, testTimeLimit) {
+		if (testTimeLimit > 0) { // Ensure testTimeLimit is loaded from DataStore
+			val savedRemainingTime = viewModel.getRemainingTimeForCandidate(candidateId)
+			remainingTime = if (savedRemainingTime > 0) {
+				savedRemainingTime // Resume from saved time
+			} else {
+				testTimeLimit * 60 // Use test time from DataStore
+			}
+			timerStarted = true
 		}
-
-		timerStarted = true
 	}
 
-	LaunchedEffect(timerStarted) {
-		if (timerStarted) {
+	LaunchedEffect(remainingTime, timerStarted) {
+		if (timerStarted && remainingTime > 0) {
 			while (remainingTime > 0) {
 				delay(1000L)
-				remainingTime -= 1
+				remainingTime--
 			}
 		}
 	}
 
-	LaunchedEffect(usePreviousData) {
+	LaunchedEffect(candidateId, usePreviousData) {
 		if (usePreviousData) {
+			val firstUnansweredIndex = questions.indexOfFirst { question ->
+				candidateAnswers.none { it.questionId == question.id && it.answerText.isNotEmpty() }
+			}
+
+			currentIndex.intValue = if (firstUnansweredIndex != -1) firstUnansweredIndex else 0
 			currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
 		} else {
 			viewModel.clearAnswersForCandidate(candidateId)
+			currentIndex.intValue = 0
+			currentAnswer = ""
 		}
 	}
 
@@ -262,6 +269,11 @@ fun TestScreen(
 		)
 	}
 
+	fun stopTimer(){
+		timerStarted = false
+		remainingTime = 0
+	}
+
 	dialogType?.let {
 		when (it) {
 			DialogType.QUESTION_NOT_COMPLETE -> QuestionNotCompleteDialog(
@@ -282,8 +294,7 @@ fun TestScreen(
 			DialogType.ALL_QUESTIONS_NOT_COMPLETE -> AllQuestionNotCompleteDialog(
 				onDismiss = { dialogType = null },
 				onEndTest = {
-					timerStarted = false
-					remainingTime = 0
+					stopTimer()
 					dialogType = null
 					showEndOfTestDialog = true
 				}
@@ -291,8 +302,6 @@ fun TestScreen(
 			DialogType.ALL_QUESTIONS_COMPLETE -> AllQuestionCompleteDialog(
 				onDismiss = { dialogType = null },
 				onEndTest = {
-					timerStarted = false
-					remainingTime = 0
 					dialogType = null
 					showEndOfTestDialog = true
 				}

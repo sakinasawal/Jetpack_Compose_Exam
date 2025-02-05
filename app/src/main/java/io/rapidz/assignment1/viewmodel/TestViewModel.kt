@@ -90,6 +90,10 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 		}
 	}
 
+	fun getRemainingTimeForCandidate(candidateId: Long): Int {
+		return _answers.value.find { it.candidateId == candidateId }?.remainingTime ?: 0
+	}
+
 	fun getTotalTimeTaken(candidateId: Long): StateFlow<Int> {
 		viewModelScope.launch {
 			val totalTime = repository.getTotalTimeTaken(candidateId)

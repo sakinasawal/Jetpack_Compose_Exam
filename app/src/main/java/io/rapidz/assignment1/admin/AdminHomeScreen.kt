@@ -98,10 +98,6 @@ fun AdminHomeScreen(navController : NavController ?= null) {
 			candidates = fetchedCandidates
 			displayedCandidates = fetchedCandidates
 
-			fetchedCandidates.forEach { candidate ->
-				answerViewModel.getTimerForCandidate(candidate.id)
-			}
-
 			val scores = fetchedCandidates.map { candidate ->
 				answerViewModel.getCandidateScore(candidate.id)
 			}

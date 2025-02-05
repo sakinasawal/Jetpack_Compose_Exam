@@ -28,9 +28,6 @@ interface AnswerDao {
 	@Query("SELECT SUM(totalTime) FROM answers WHERE candidateId = :candidateId")
 	suspend fun getTotalTimeTaken(candidateId: Long): Int
 
-	@Query("SELECT remainingTime FROM answers WHERE candidateId = :candidateId LIMIT 1")
-	suspend fun getTimerForCandidate(candidateId: Long): Int?
-
 	@Query("UPDATE answers SET score = :adminScore WHERE questionId = :questionId AND candidateId = :candidateId")
 	suspend fun updateAdminScore(questionId: Int, candidateId: Long, adminScore: Int)
 

@@ -20,14 +20,13 @@ import javax.inject.Inject
 class TestViewModel @Inject constructor (private val repository: TestRepository
 ) : ViewModel() {
 
-	private val _answers = MutableStateFlow<List<Answer>>(emptyList())
-	private val _candidateTimers = MutableStateFlow<Map<Long, Int>>(emptyMap())
-	private val _totalTimeTaken = MutableStateFlow<Map<Long, Int>>(emptyMap())
+	private val answers = MutableStateFlow<List<Answer>>(emptyList())
+	private val totalTimeTaken = MutableStateFlow<Map<Long, Int>>(emptyMap())
 
 	init {
 		viewModelScope.launch {
 			repository.getAnswers().collect{
-				_answers.value = it
+				answers.value = it
 			}
 		}
 	}
@@ -56,7 +55,7 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 
 	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, remainingTime: Int, initialTime : Int, questionType: QuestionType, defaultAnswer: String, adminScore: Int? = null, isAdmin : Boolean = false) {
 		viewModelScope.launch {
-			val existingAnswer = _answers.value.find { it.questionId == questionId && it.candidateId == candidateId }
+			val existingAnswer = answers.value.find { it.questionId == questionId && it.candidateId == candidateId }
 
 			if (isAdmin) {
 				if (existingAnswer != null){
@@ -72,7 +71,7 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 				}
 
 				val timeSpent = initialTime - remainingTime
-				val totalTimeForCandidate = _totalTimeTaken.value[candidateId] ?: 0
+				val totalTimeForCandidate = totalTimeTaken.value[candidateId] ?: 0
 				val totalTime = totalTimeForCandidate + timeSpent
 
 				if (existingAnswer != null) {
@@ -83,7 +82,7 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 				}
 
 				val newTotalTime = totalTimeForCandidate + timeSpent
-				_totalTimeTaken.value = _totalTimeTaken.value.toMutableMap().apply {
+				totalTimeTaken.value = totalTimeTaken.value.toMutableMap().apply {
 					put(candidateId, newTotalTime)
 				}
 			}
@@ -91,17 +90,17 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 	}
 
 	fun getRemainingTimeForCandidate(candidateId: Long): Int {
-		return _answers.value.find { it.candidateId == candidateId }?.remainingTime ?: 0
+		return answers.value.find { it.candidateId == candidateId }?.remainingTime ?: 0
 	}
 
 	fun getTotalTimeTaken(candidateId: Long): StateFlow<Int> {
 		viewModelScope.launch {
 			val totalTime = repository.getTotalTimeTaken(candidateId)
-			_totalTimeTaken.value = _totalTimeTaken.value.toMutableMap().apply {
+			totalTimeTaken.value = totalTimeTaken.value.toMutableMap().apply {
 				put(candidateId, totalTime)
 			}
 		}
-		return _totalTimeTaken.map { it[candidateId] ?: 0 }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
+		return totalTimeTaken.map { it[candidateId] ?: 0 }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
 	}
 
 	fun getAnswersByCandidate(candidateId: Long): StateFlow<List<Answer>> {
@@ -114,18 +113,8 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 		return answersFlow
 	}
 
-	fun getTimerForCandidate(candidateId: Long) {
-		viewModelScope.launch {
-			val timer = repository.getTimerForCandidate(candidateId) ?: 0
-			// Update the timer for the specific candidate
-			_candidateTimers.value = _candidateTimers.value.toMutableMap().apply {
-				put(candidateId, timer)
-			}
-		}
-	}
-
 	fun getCandidateScore(candidateId: Long): String {
-		val candidateAnswers = _answers.value.filter { it.candidateId == candidateId }
+		val candidateAnswers = answers.value.filter { it.candidateId == candidateId }
 		return if (candidateAnswers.any { it.score == "?" }) {
 			"?"
 		} else {

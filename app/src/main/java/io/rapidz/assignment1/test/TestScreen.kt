@@ -18,6 +18,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -78,7 +79,7 @@ fun TestScreen(
 		factory = CandidateDataStoreViewModelFactory(context)
 	)
 	val testTimeLimit by candidateDataStoreViewModel.testTimeLimit.collectAsState(initial = 0)
-	var remainingTime by remember { mutableStateOf(testTimeLimit * 60)}
+	var remainingTime by rememberSaveable { mutableStateOf(0)}
 	var timerStarted by remember { mutableStateOf(false) }
 	val formattedTimer = formatSecondsToTime(remainingTime)
 	val initialTime = testTimeLimit * 60
@@ -89,7 +90,7 @@ fun TestScreen(
 			remainingTime = if (savedRemainingTime > 0) {
 				savedRemainingTime // Resume from saved time
 			} else {
-				testTimeLimit * 60 // Use test time from DataStore
+				initialTime // Use test time from DataStore
 			}
 			timerStarted = true
 		}
@@ -302,6 +303,7 @@ fun TestScreen(
 			DialogType.ALL_QUESTIONS_COMPLETE -> AllQuestionCompleteDialog(
 				onDismiss = { dialogType = null },
 				onEndTest = {
+					stopTimer()
 					dialogType = null
 					showEndOfTestDialog = true
 				}
@@ -510,7 +512,7 @@ private fun AllQuestionNotCompleteDialog(
 
 @Composable
 fun EndOfTestDialog(navController: NavController? = null,
-					onDismiss: () -> Unit,){
+					onDismiss: () -> Unit){
 	CompletedQuestionTheme {
 		EndTestAlertDialog(
 			titleResId = R.string.title_end_test,

@@ -52,4 +52,4 @@ fun NavGraphBuilder.composable(navController: NavController, screen: Screen) {
 /**
  * Navigate to the screen and remove all back stacks.
  */
-fun NavController.navigate(screen: Screen) = navigate(screen.route) {}
+fun NavController.navigate(screen: Screen) = navigate(screen.route)

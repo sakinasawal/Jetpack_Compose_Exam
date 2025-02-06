@@ -8,12 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.rapidz.assignment1.admin.AdminScreen
-import io.rapidz.assignment1.candidate.CandidateScreen
-import io.rapidz.assignment1.role.RoleSelectionScreen
-import io.rapidz.assignment1.test.*
 import io.rapidz.assignment1.viewmodel.SplashViewModel
 
 

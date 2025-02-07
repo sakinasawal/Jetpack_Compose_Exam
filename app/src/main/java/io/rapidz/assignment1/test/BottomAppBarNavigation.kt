@@ -25,6 +25,7 @@ fun BottomAppBarPreview() {
 @Composable
 fun BottomAppBar(
 	timer: String? = "",
+	remainingTime: Int? = 0,
 	onLeftDoubleArrowClick : (() -> Unit)? = null,
 	onLeftArrowClick : (() -> Unit)? = null,
 	onRightArrowClick : (() -> Unit)? = null,
@@ -32,9 +33,17 @@ fun BottomAppBar(
 	onFloatingButtonClick : (() -> Unit)? = null,
 	content: @Composable () -> Unit? = {}
 ) {
+
+	val backgroundColor = if (remainingTime!! < 60) {
+		md_theme_default_error // Use error color if countdown < 1 min
+	} else {
+		md_theme_default_surface // Default color
+	}
+
 	Scaffold(
 		bottomBar = {
 			BottomAppBar(
+				containerColor = backgroundColor,
 				actions = {
 					IconButton(onClick = { onLeftDoubleArrowClick!!()}) {
 						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)

@@ -71,6 +71,8 @@ fun TestScreen(
 	var currentAnswer by remember { mutableStateOf("") }
 	val candidateAnswers by viewModel.getAnswersByCandidate(candidateId).collectAsState(initial = emptyList())
 
+	val currentQuestion = questions[currentIndex.intValue]
+
 	var dialogType by remember { mutableStateOf<DialogType?>(null) }
 	var showEndOfTestDialog by remember { mutableStateOf(false) }
 	var showQuestionNotCompleteDialog by remember { mutableStateOf(false) }
@@ -83,6 +85,8 @@ fun TestScreen(
 	var timerStarted by remember { mutableStateOf(false) }
 	val formattedTimer = formatSecondsToTime(remainingTime)
 	val initialTime = testTimeLimit * 60
+
+	val isCompleted = candidateAnswers.any { it.questionId == currentQuestion.id && it.answerText.isNotEmpty() }
 
 	LaunchedEffect(candidateId, testTimeLimit) {
 		if (testTimeLimit > 0) { // Ensure testTimeLimit is loaded from DataStore
@@ -112,7 +116,7 @@ fun TestScreen(
 			}
 
 			currentIndex.intValue = if (firstUnansweredIndex != -1) firstUnansweredIndex else 0
-			currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
+			currentAnswer = getSavedAnswer(currentQuestion, candidateAnswers)
 		} else {
 			viewModel.clearAnswersForCandidate(candidateId)
 			currentIndex.intValue = 0
@@ -120,26 +124,33 @@ fun TestScreen(
 		}
 	}
 
-	DefaultTheme {
+	val themeWrapper: @Composable (@Composable () -> Unit) -> Unit = if (isCompleted) {
+		{ content -> CompletedQuestionTheme(content) }
+	} else {
+		{ content -> UncompletedQuestionTheme(content) }
+	}
+
+	themeWrapper {
 		BottomAppBar(
 			timer = formattedTimer,
+			remainingTime = remainingTime,
 			onLeftArrowClick = {
-				if (!isQuestionComplete(questions[currentIndex.intValue], currentAnswer)){
+				if (!isQuestionComplete(currentQuestion, currentAnswer)){
 					dialogType = DialogType.QUESTION_NOT_COMPLETE
 				} else if (currentIndex.intValue > 0) {
-					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, remainingTime, initialTime, viewModel)
+					saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
 					currentIndex.intValue--
-					currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
+					currentAnswer = getSavedAnswer(currentQuestion, candidateAnswers)
 				}
 			},
 			onRightArrowClick = {
-				if (!isQuestionComplete(questions[currentIndex.intValue], currentAnswer)) {
+				if (!isQuestionComplete(currentQuestion, currentAnswer)) {
 					dialogType = DialogType.QUESTION_NOT_COMPLETE
 				} else {
-					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, remainingTime, initialTime, viewModel)
+					saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
 					if (currentIndex.intValue == questions.size - 1) {
 						val allQuestionsComplete = questions.all { question ->
-							if (question.id == questions[currentIndex.intValue].id){
+							if (question.id == currentQuestion.id){
 								currentAnswer.isNotBlank() && currentAnswer.isNotEmpty()
 							} else {
 								candidateAnswers.any { it.questionId == question.id && it.answerText.isNotEmpty()}
@@ -152,7 +163,7 @@ fun TestScreen(
 						}
 					} else {
 						currentIndex.intValue++
-						currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
+						currentAnswer = getSavedAnswer(currentQuestion, candidateAnswers)
 					}
 				}
 			},
@@ -161,18 +172,18 @@ fun TestScreen(
 				currentAnswer = getSavedAnswer(questions[0], candidateAnswers)
 			},
 			onRightDoubleArrowClick = {
-				saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, remainingTime, initialTime, viewModel)
+				saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
 				currentIndex.intValue = questions.size - 1
 				currentAnswer = getSavedAnswer(questions.last(), candidateAnswers)
 			},
 			onFloatingButtonClick = {
-				if (!isQuestionComplete(questions[currentIndex.intValue], currentAnswer)) {
+				if (!isQuestionComplete(currentQuestion, currentAnswer)) {
 					dialogType = DialogType.QUESTION_NOT_COMPLETE
 				} else {
-					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, remainingTime, initialTime, viewModel)
+					saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
 					if (currentIndex.intValue == questions.size - 1) {
 						val allQuestionsComplete = questions.all { question ->
-							if (question.id == questions[currentIndex.intValue].id){
+							if (question.id == currentQuestion.id){
 								currentAnswer.isNotBlank() && currentAnswer.isNotEmpty()
 							} else {
 								candidateAnswers.any { it.questionId == question.id && it.answerText.isNotEmpty()}
@@ -185,7 +196,7 @@ fun TestScreen(
 						}
 					} else {
 						currentIndex.intValue++
-						currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
+						currentAnswer = getSavedAnswer(currentQuestion, candidateAnswers)
 					}
 				}
 			}
@@ -196,7 +207,7 @@ fun TestScreen(
 					.background(color = md_theme_default_primaryContainer)
 					.padding(spacing_20)
 			){
-				val question = questions[currentIndex.intValue]
+				val question = currentQuestion
 
 				TextLabelTitle(
 					text = "Question " + question.id,
@@ -229,12 +240,12 @@ fun TestScreen(
 	}
 
 	BackHandler {
-		if (!isQuestionComplete(questions[currentIndex.intValue], currentAnswer)) {
+		if (!isQuestionComplete(currentQuestion, currentAnswer)) {
 			showQuestionNotCompleteDialog = true
 		} else {
 			// Save the answer for the current question
 			saveAnswerForCurrentQuestion(
-				questions[currentIndex.intValue],
+				currentQuestion,
 				currentAnswer,
 				candidateId,
 				remainingTime,
@@ -251,7 +262,7 @@ fun TestScreen(
 			onProceed = {
 				// Save the current answer (whether answered or not)
 				saveAnswerForCurrentQuestion(
-					questions[currentIndex.intValue],
+					currentQuestion,
 					currentAnswer,
 					candidateId,
 					remainingTime,
@@ -279,14 +290,13 @@ fun TestScreen(
 		when (it) {
 			DialogType.QUESTION_NOT_COMPLETE -> QuestionNotCompleteDialog(
 				onProceed = {
-					saveAnswerForCurrentQuestion(questions[currentIndex.intValue], currentAnswer, candidateId, remainingTime, initialTime, viewModel)
+					saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
 					if(currentIndex.intValue == questions.size - 1){
-						dialogType = null
-						showEndOfTestDialog = true
+						dialogType = DialogType.ALL_QUESTIONS_NOT_COMPLETE
 					}
 					else {
 						currentIndex.intValue++
-						currentAnswer = getSavedAnswer(questions[currentIndex.intValue], candidateAnswers)
+						currentAnswer = getSavedAnswer(currentQuestion, candidateAnswers)
 						dialogType = null
 					}
 				},
@@ -320,7 +330,6 @@ fun TestScreen(
 		)
 	}
 }
-
 
 // ================= Region Question Type =====================
 
@@ -524,10 +533,3 @@ fun EndOfTestDialog(navController: NavController? = null,
 		)
 	}
 }
-
-// change bottom bar color
-//val themeContent: @Composable (@Composable () -> Unit) -> Unit = if (countdownState.value < 60 * 1000) {
-//		{ UncompletedQuestionTheme(it) }
-//	} else {
-//		{ DefaultTheme(it) }
-//	}

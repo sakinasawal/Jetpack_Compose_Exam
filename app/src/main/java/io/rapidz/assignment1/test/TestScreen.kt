@@ -79,8 +79,8 @@ fun TestScreen(
 	val candidateDataStoreViewModel: CandidateDataStoreViewModel = viewModel(
 		factory = CandidateDataStoreViewModelFactory(context)
 	)
-	val testTimeLimit by candidateDataStoreViewModel.testTimeLimit.collectAsState(initial = 0)
-	var remainingTime by rememberSaveable { mutableStateOf(0)}
+	val testTimeLimit by candidateDataStoreViewModel.testTimeLimit.collectAsState()
+	var remainingTime by viewModel.remainingTime.collectAsState()
 	var timerStarted by remember { mutableStateOf(false) }
 	val formattedTimer = formatSecondsToTime(remainingTime)
 	val initialTime = testTimeLimit * 60
@@ -89,6 +89,7 @@ fun TestScreen(
 
 	var isNavigationRight by remember { mutableStateOf(false) }
 	var isNavigationLeftDouble by remember { mutableStateOf(false) }
+	var isNavigationRightDouble by remember { mutableStateOf(false) }
 
 	LaunchedEffect(candidateId, testTimeLimit) {
 		if (testTimeLimit > 0) { // Ensure testTimeLimit is loaded from DataStore
@@ -104,7 +105,7 @@ fun TestScreen(
 
 	LaunchedEffect(remainingTime, timerStarted) {
 		if (timerStarted && remainingTime > 0) {
-			while (remainingTime > 0) {
+			repeat(remainingTime) {
 				delay(1000L)
 				remainingTime--
 			}
@@ -150,6 +151,7 @@ fun TestScreen(
 					dialogType = DialogType.QUESTION_NOT_COMPLETE
 				} else {
 					saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
+
 					if (currentIndex.intValue == questions.size - 1) {
 						val allQuestionsComplete = questions.all { question ->
 							if (question.id == currentQuestion.id){
@@ -180,32 +182,26 @@ fun TestScreen(
 				}
 			},
 			onRightDoubleArrowClick = {
-				saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
-				currentIndex.intValue = questions.size - 1
-				currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
-			},
-			onFloatingButtonClick = {
 				if (!isQuestionComplete(currentQuestion, currentAnswer)) {
+					isNavigationRightDouble = true
 					dialogType = DialogType.QUESTION_NOT_COMPLETE
 				} else {
 					saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
-					if (currentIndex.intValue == questions.size - 1) {
-						val allQuestionsComplete = questions.all { question ->
-							if (question.id == currentQuestion.id){
-								currentAnswer.isNotBlank() && currentAnswer.isNotEmpty()
-							} else {
-								candidateAnswers.any { it.questionId == question.id && it.answerText.isNotEmpty()}
-							}
-						}
-						dialogType = if (allQuestionsComplete) {
-							DialogType.ALL_QUESTIONS_COMPLETE
-						} else {
-							DialogType.ALL_QUESTIONS_NOT_COMPLETE
-						}
-					} else {
-						currentIndex.intValue++
-						currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
-					}
+					currentIndex.intValue = questions.size - 1
+					currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
+				}
+			},
+			onFloatingButtonClick = {
+				saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
+
+				val allQuestionsComplete = questions.all { question ->
+					candidateAnswers.any { it.questionId == question.id && it.answerText.isNotEmpty()}
+				}
+
+				dialogType = if (allQuestionsComplete) {
+					DialogType.ALL_QUESTIONS_COMPLETE
+				} else {
+					DialogType.ALL_QUESTIONS_NOT_COMPLETE
 				}
 			}
 		){
@@ -290,7 +286,6 @@ fun TestScreen(
 
 	fun stopTimer(){
 		timerStarted = false
-		remainingTime = 0
 	}
 
 	dialogType?.let {
@@ -299,19 +294,27 @@ fun TestScreen(
 				onProceed = {
 					saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
 
-					if(currentIndex.intValue == questions.size - 1 && isNavigationRight){
-						dialogType = DialogType.ALL_QUESTIONS_NOT_COMPLETE
-					} else if (dialogType == DialogType.QUESTION_NOT_COMPLETE){
-						if (isNavigationLeftDouble){
-							currentIndex .intValue = 0
-							isNavigationLeftDouble = false
-						} else if (currentIndex.intValue > 0) {
-							currentIndex.intValue--
+					if (isNavigationRight){
+						if (currentIndex.intValue < questions.size - 1){
+							currentIndex.intValue++
+							currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
+							isNavigationRight = false
+							dialogType = null
+						} else {
+							dialogType = DialogType.ALL_QUESTIONS_NOT_COMPLETE
 						}
+					} else if (isNavigationRightDouble){
+						currentIndex.intValue = questions.size - 1
+						currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
+						isNavigationRightDouble = false
+						dialogType = null
+					} else if (isNavigationLeftDouble) {
+						currentIndex.intValue = 0
+						isNavigationLeftDouble = false
 						currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
 						dialogType = null
-					} else {
-						currentIndex.intValue++
+					} else if (currentIndex.intValue > 0 ){
+						currentIndex.intValue--
 						currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
 						dialogType = null
 					}

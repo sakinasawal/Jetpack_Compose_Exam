@@ -31,4 +31,10 @@ interface AnswerDao {
 	@Query("UPDATE answers SET score = :adminScore WHERE questionId = :questionId AND candidateId = :candidateId")
 	suspend fun updateAdminScore(questionId: Int, candidateId: Long, adminScore: Int)
 
+	@Query("SELECT remainingTime FROM answers WHERE candidateId = :candidateId ORDER BY id DESC LIMIT 1")
+	suspend fun getRemainingTime(candidateId: Long): Int
+
+	@Query("UPDATE answers SET remainingTime = :remainingTime WHERE candidateId = :candidateId")
+	suspend fun updateRemainingTime(candidateId: Long, remainingTime: Int)
+
 }

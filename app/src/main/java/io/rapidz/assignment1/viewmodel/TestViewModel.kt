@@ -1,5 +1,6 @@
 package io.rapidz.assignment1.viewmodel
 
+import android.os.CountDownTimer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -8,6 +9,7 @@ import io.rapidz.assignment1.data.Answer
 import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.repository.TestRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,10 +25,16 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 	private val answers = MutableStateFlow<List<Answer>>(emptyList())
 	private val totalTimeTaken = MutableStateFlow<Map<Long, Int>>(emptyMap())
 
+	private val _remainingTime = MutableStateFlow(0)
+	val remainingTime: StateFlow<Int> = _remainingTime
+
 	init {
 		viewModelScope.launch {
 			repository.getAnswers().collect{
 				answers.value = it
+				var test = 0
+				it.forEach { question -> test += (question.totalTime - question.remainingTime) }
+				_remainingTime.value = test
 			}
 		}
 	}
@@ -127,6 +135,7 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 			repository.deleteAnswersForCandidate(candidateId)
 		}
 	}
+	
 }
 
 class TestViewModelFactory(private val testRepository: TestRepository) : ViewModelProvider.Factory {

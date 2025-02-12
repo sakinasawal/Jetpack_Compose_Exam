@@ -47,7 +47,6 @@ import io.rapidz.assignment1.spacing_24
 import io.rapidz.assignment1.spacing_4
 import io.rapidz.assignment1.spacing_8
 import io.rapidz.assignment1.storage.AppDatabase
-import io.rapidz.assignment1.ui.DefaultTheme
 import io.rapidz.assignment1.ui.*
 import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModel
 import io.rapidz.assignment1.viewmodel.CandidateDataStoreViewModelFactory
@@ -88,6 +87,9 @@ fun TestScreen(
 
 	val isCompleted = candidateAnswers.any { it.questionId == currentQuestion.id && it.answerText.isNotEmpty() }
 
+	var isNavigationRight by remember { mutableStateOf(false) }
+	var isNavigationLeftDouble by remember { mutableStateOf(false) }
+
 	LaunchedEffect(candidateId, testTimeLimit) {
 		if (testTimeLimit > 0) { // Ensure testTimeLimit is loaded from DataStore
 			val savedRemainingTime = viewModel.getRemainingTimeForCandidate(candidateId)
@@ -114,9 +116,8 @@ fun TestScreen(
 			val firstUnansweredIndex = questions.indexOfFirst { question ->
 				candidateAnswers.none { it.questionId == question.id && it.answerText.isNotEmpty() }
 			}
-
 			currentIndex.intValue = if (firstUnansweredIndex != -1) firstUnansweredIndex else 0
-			currentAnswer = getSavedAnswer(currentQuestion, candidateAnswers)
+			currentAnswer = getSavedAnswer(firstUnansweredIndex, candidateAnswers)
 		} else {
 			viewModel.clearAnswersForCandidate(candidateId)
 			currentIndex.intValue = 0
@@ -140,11 +141,12 @@ fun TestScreen(
 				} else if (currentIndex.intValue > 0) {
 					saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
 					currentIndex.intValue--
-					currentAnswer = getSavedAnswer(currentQuestion, candidateAnswers)
+					currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
 				}
 			},
 			onRightArrowClick = {
 				if (!isQuestionComplete(currentQuestion, currentAnswer)) {
+					isNavigationRight = true
 					dialogType = DialogType.QUESTION_NOT_COMPLETE
 				} else {
 					saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
@@ -163,18 +165,24 @@ fun TestScreen(
 						}
 					} else {
 						currentIndex.intValue++
-						currentAnswer = getSavedAnswer(currentQuestion, candidateAnswers)
+						currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
 					}
 				}
 			},
 			onLeftDoubleArrowClick = {
-				currentIndex.intValue = 0
-				currentAnswer = getSavedAnswer(questions[0], candidateAnswers)
+				if (!isQuestionComplete(currentQuestion, currentAnswer)){
+					isNavigationLeftDouble = true
+					dialogType = DialogType.QUESTION_NOT_COMPLETE
+				} else {
+					saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
+					currentIndex.intValue = 0
+					currentAnswer = getSavedAnswer(0, candidateAnswers)
+				}
 			},
 			onRightDoubleArrowClick = {
 				saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
 				currentIndex.intValue = questions.size - 1
-				currentAnswer = getSavedAnswer(questions.last(), candidateAnswers)
+				currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
 			},
 			onFloatingButtonClick = {
 				if (!isQuestionComplete(currentQuestion, currentAnswer)) {
@@ -196,7 +204,7 @@ fun TestScreen(
 						}
 					} else {
 						currentIndex.intValue++
-						currentAnswer = getSavedAnswer(currentQuestion, candidateAnswers)
+						currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
 					}
 				}
 			}
@@ -204,7 +212,6 @@ fun TestScreen(
 			Column(
 				modifier = Modifier
 					.fillMaxSize()
-					.background(color = md_theme_default_primaryContainer)
 					.padding(spacing_20)
 			){
 				val question = currentQuestion
@@ -291,12 +298,21 @@ fun TestScreen(
 			DialogType.QUESTION_NOT_COMPLETE -> QuestionNotCompleteDialog(
 				onProceed = {
 					saveAnswerForCurrentQuestion(currentQuestion, currentAnswer, candidateId, remainingTime, initialTime, viewModel)
-					if(currentIndex.intValue == questions.size - 1){
+
+					if(currentIndex.intValue == questions.size - 1 && isNavigationRight){
 						dialogType = DialogType.ALL_QUESTIONS_NOT_COMPLETE
-					}
-					else {
+					} else if (dialogType == DialogType.QUESTION_NOT_COMPLETE){
+						if (isNavigationLeftDouble){
+							currentIndex .intValue = 0
+							isNavigationLeftDouble = false
+						} else if (currentIndex.intValue > 0) {
+							currentIndex.intValue--
+						}
+						currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
+						dialogType = null
+					} else {
 						currentIndex.intValue++
-						currentAnswer = getSavedAnswer(currentQuestion, candidateAnswers)
+						currentAnswer = getSavedAnswer(currentIndex.intValue, candidateAnswers)
 						dialogType = null
 					}
 				},
@@ -448,10 +464,10 @@ fun saveAnswerForCurrentQuestion(
 }
 
 fun getSavedAnswer(
-	question: Question,
+	question: Int,
 	candidateAnswers: List<Answer>)
 : String {
-	return candidateAnswers.find { it.questionId == question.id }?.answerText ?: ""
+	return candidateAnswers.find { it.questionId == (question +1) }?.answerText ?: ""
 }
 
 enum class DialogType {

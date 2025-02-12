@@ -33,17 +33,10 @@ fun BottomAppBar(
 	onFloatingButtonClick : (() -> Unit)? = null,
 	content: @Composable () -> Unit? = {}
 ) {
-
-	val backgroundColor = if (remainingTime!! < 60) {
-		md_theme_default_error // Use error color if countdown < 1 min
-	} else {
-		md_theme_default_surface // Default color
-	}
-
 	Scaffold(
 		bottomBar = {
 			BottomAppBar(
-				containerColor = backgroundColor,
+				containerColor = if(remainingTime!! > 60) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.error,
 				actions = {
 					IconButton(onClick = { onLeftDoubleArrowClick!!()}) {
 						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
@@ -67,6 +60,7 @@ fun BottomAppBar(
 				},
 				floatingActionButton = {
 					FloatingActionButton(
+						containerColor = if (remainingTime!! < 60) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.primaryContainer,
 						onClick = {
 							if (onFloatingButtonClick != null) {
 								onFloatingButtonClick()

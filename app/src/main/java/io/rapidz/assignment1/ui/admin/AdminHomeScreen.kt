@@ -1,8 +1,7 @@
-package io.rapidz.assignment1.admin
+package io.rapidz.assignment1.ui.admin
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -40,8 +39,6 @@ import io.rapidz.assignment1.viewmodel.CandidateViewModel
 import io.rapidz.assignment1.viewmodel.CandidateViewModelFactory
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale

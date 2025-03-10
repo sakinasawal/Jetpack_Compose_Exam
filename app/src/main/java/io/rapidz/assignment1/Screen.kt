@@ -5,12 +5,12 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import io.rapidz.assignment1.admin.AdminHomeScreen
-import io.rapidz.assignment1.admin.AdminScreen
-import io.rapidz.assignment1.admin.AdminTestScreen
-import io.rapidz.assignment1.candidate.CandidateScreen
-import io.rapidz.assignment1.role.RoleSelectionScreen
-import io.rapidz.assignment1.test.TestScreen
+import io.rapidz.assignment1.ui.admin.AdminHomeScreen
+import io.rapidz.assignment1.ui.admin.AdminScreen
+import io.rapidz.assignment1.ui.admin.AdminTestScreen
+import io.rapidz.assignment1.ui.candidate.CandidateScreen
+import io.rapidz.assignment1.ui.role.RoleSelectionScreen
+import io.rapidz.assignment1.ui.test.TestScreen
 
 sealed class Screen(val route: String, val content: @Composable (NavController, Bundle?) -> Unit) {
 

@@ -1,4 +1,4 @@
-package io.rapidz.assignment1.admin
+package io.rapidz.assignment1.ui.admin
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures

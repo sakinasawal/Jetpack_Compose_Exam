@@ -1,4 +1,4 @@
-package io.rapidz.assignment1.admin
+package io.rapidz.assignment1.ui.admin
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -28,10 +28,10 @@ import io.rapidz.assignment1.formatSecondsToTime
 import io.rapidz.assignment1.repository.TestRepository
 import io.rapidz.assignment1.spacing_4
 import io.rapidz.assignment1.storage.AppDatabase
-import io.rapidz.assignment1.test.BottomAppBarAdmin
-import io.rapidz.assignment1.test.CheckBoxAnswer
-import io.rapidz.assignment1.test.RadioButtonAnswer
-import io.rapidz.assignment1.test.Textarea
+import io.rapidz.assignment1.ui.test.BottomAppBarAdmin
+import io.rapidz.assignment1.ui.test.CheckBoxAnswer
+import io.rapidz.assignment1.ui.test.RadioButtonAnswer
+import io.rapidz.assignment1.ui.test.Textarea
 import io.rapidz.assignment1.ui.AdminTheme
 import io.rapidz.assignment1.ui.md_theme_admin_error
 import io.rapidz.assignment1.ui.md_theme_default_primaryContainer

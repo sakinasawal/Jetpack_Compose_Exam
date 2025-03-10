@@ -1,4 +1,4 @@
-package io.rapidz.assignment1.candidate
+package io.rapidz.assignment1.ui.candidate
 
 import android.widget.Toast
 import androidx.compose.foundation.*

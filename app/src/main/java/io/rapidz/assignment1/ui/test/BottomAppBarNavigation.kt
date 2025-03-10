@@ -1,4 +1,4 @@
-package io.rapidz.assignment1.test
+package io.rapidz.assignment1.ui.test
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState

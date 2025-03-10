@@ -1,11 +1,9 @@
-package io.rapidz.assignment1.role
+package io.rapidz.assignment1.ui.role
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import io.rapidz.assignment1.navigate
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview

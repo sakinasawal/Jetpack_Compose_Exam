@@ -28,16 +28,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import io.rapidz.assignment1.AppButton
 import io.rapidz.assignment1.InputTextField
+import io.rapidz.assignment1.LocalNavController
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.Screen
 import io.rapidz.assignment1.TextLabel
-import io.rapidz.assignment1.spacing_20
+import io.rapidz.assignment1.ui.spacing_20
 import io.rapidz.assignment1.ui.AdminTheme
 import io.rapidz.assignment1.ui.AppTypography
 import io.rapidz.assignment1.ui.md_theme_default_background
 
 @Composable
-fun AdminScreen(navController: NavController? = null) {
+fun AdminScreen(navController: NavController? = LocalNavController.current) {
 
 	var password by remember { mutableStateOf("") }
 	var showSnackbar by remember { mutableStateOf(false) }

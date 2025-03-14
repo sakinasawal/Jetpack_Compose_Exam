@@ -3,27 +3,28 @@ package io.rapidz.assignment1
 import android.annotation.SuppressLint
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.navigation.NavController
-import kotlinx.coroutines.delay
+import io.rapidz.assignment1.ui.spacing_10
+import io.rapidz.assignment1.ui.spacing_8
+import java.util.regex.Pattern
 
 @Composable
 @SuppressLint("ModifierParameter")
@@ -58,11 +59,16 @@ fun InputTextField(
 	placeholder: String,
 	modifier : Modifier = Modifier,
 ){
+	val keyboardController = LocalSoftwareKeyboardController.current
+
 	TextField(
 		value = value,
 		onValueChange = onValueChange,
 		modifier = modifier.fillMaxWidth(),
-		placeholder = { Text(placeholder) }
+		placeholder = { Text(placeholder) },
+//		keyboardActions = KeyboardOptions.Default.copy(
+//			imeAction = ImeAction.Done
+//		)
 	)
 }
 
@@ -110,13 +116,10 @@ fun AppButton(
 		colors = colors,
 	) {
 		if (textColor != null) {
-			Text(textRes)
+			Text(stringResource(textRes))
 		}
 	}
 }
-
-@Composable
-fun Text(@StringRes res: Int) = Text(stringResource(res))
 
 @Composable
 fun GeneralAlertDialog(
@@ -131,13 +134,13 @@ fun GeneralAlertDialog(
 		icon = {
 			Icon(Icons.Default.Bolt, contentDescription = null)
 		},
-		title = { Text(titleResId)},
+		title = { Text(stringResource(titleResId))},
 		text = {
 			Column(
 				modifier = Modifier
 					.padding(spacing_8)
 			) {
-				Text(messageResId)
+				Text(stringResource(messageResId))
 
 				Spacer(modifier = Modifier.height(spacing_10))
 				
@@ -149,12 +152,12 @@ fun GeneralAlertDialog(
 		},
 		confirmButton = {
 			TextButton(onClick = { onPositiveButtonClick() }) {
-				Text(R.string.dialog_yes)
+				Text(stringResource(R.string.dialog_yes))
 			}
 		},
 		dismissButton = {
 			TextButton(onClick = { onNegativeButtonClick() }) {
-				Text(R.string.dialog_no)
+				Text(stringResource(R.string.dialog_no))
 			}
 		}
 	)
@@ -172,24 +175,24 @@ fun EndTestAlertDialog(
 		icon = {
 			Icon(Icons.Default.Done, contentDescription = null)
 		},
-		title = { Text(titleResId)},
+		title = { Text(stringResource(titleResId))},
 		text = {
 			Column(
 				modifier = Modifier
 					.padding(spacing_8)
 			) {
-				Text(messageResId)
+				Text(stringResource(messageResId))
 			}
 
 		},
 		confirmButton = {
 			TextButton(onClick = { onPositiveButtonClick() }) {
-				Text(R.string.dialog_ok)
+				Text(stringResource(R.string.dialog_ok))
 			}
 		},
 		dismissButton = {
 			TextButton(onClick = { onNegativeButtonClick() }) {
-				Text(R.string.dialog_no)
+				Text(stringResource(R.string.dialog_no))
 			}
 		}
 	)
@@ -200,4 +203,10 @@ fun formatSecondsToTime(seconds: Int): String {
 	val minutes = seconds / 60
 	val remainingSeconds = seconds % 60
 	return String.format("%02dm %02ds", minutes, remainingSeconds)
+}
+
+fun isValidEmail(email : String) : Boolean {
+	val emailRegex = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})"
+	val pattern = Pattern.compile(emailRegex)
+	return pattern.matcher(email).matches()
 }

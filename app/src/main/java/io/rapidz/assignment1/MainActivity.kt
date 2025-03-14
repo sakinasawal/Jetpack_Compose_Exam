@@ -5,26 +5,38 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import io.rapidz.assignment1.viewmodel.SplashViewModel
 
+val LocalNavController = compositionLocalOf<NavController> { error("No NavController provided") }
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-	private val splashViewModel : SplashViewModel by viewModels()
 	override fun onCreate(savedInstanceState: Bundle?){
 		super.onCreate(savedInstanceState)
 
-		installSplashScreen().apply {
-			setKeepOnScreenCondition{
-				splashViewModel.keepSplashScreen.value
-			}
-		}
+		installSplashScreen()
 
 		setContent {
+			val splashViewModel : SplashViewModel = hiltViewModel()
+			val keepSplashScreen by splashViewModel.keepSplashScreen.collectAsState()
+
+			LaunchedEffect(keepSplashScreen) {
+				installSplashScreen().setKeepOnScreenCondition { keepSplashScreen }
+			}
+
 			MainApplication()
 		}
 	}
@@ -33,16 +45,15 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApplication(){
 	val navController = rememberNavController()
-	NavHost(
-		navController = navController,
-		startDestination = Screen.Role.route)
-	{
-		composable(navController,Screen.Role)
-		composable(navController,Screen.Admin)
-		composable(navController,Screen.AdminHome)
-		composable(navController,Screen.AdminTest)
-		composable(navController,Screen.Candidate)
-		composable(navController,Screen.Test)
+	CompositionLocalProvider(LocalNavController provides navController){
+		NavHost(navController = navController, startDestination = Screen.Role.route) {
+			composable(Screen.Role)
+			composable(Screen.Admin)
+			composable(Screen.AdminHome)
+			composable(Screen.AdminTest)
+			composable(Screen.CandidateRegister)
+			composable(Screen.Test)
+		}
 	}
 }
 

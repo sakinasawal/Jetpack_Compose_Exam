@@ -4,6 +4,7 @@ plugins {
 	id("com.google.devtools.ksp")
 	id("kotlin-kapt")
 	id("com.google.dagger.hilt.android")
+	id("kotlin-parcelize")
 }
 
 android {
@@ -39,6 +40,7 @@ dependencies {
 	implementation("androidx.appcompat:appcompat:1.6.1")
 	implementation("androidx.activity:activity-ktx:1.8.2")
 	implementation("com.google.android.material:material:1.11.0")
+	implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 
 	// Coroutine
 	val coroutineVersion = "1.8.0"
@@ -78,14 +80,15 @@ dependencies {
 	// DataStore
 	implementation("androidx.datastore:datastore-preferences:1.1.1")
 	implementation("androidx.datastore:datastore-preferences-core:1.1.1")
-	implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 
 	// Splash Screen API
 	implementation ("androidx.core:core-splashscreen:1.0.1")
 
 	// Hilt Dagger
-	implementation("com.google.dagger:hilt-android:2.49")
-	kapt("com.google.dagger:hilt-android-compiler:2.49")
+	val daggerVersion = "2.51"
+	implementation("com.google.dagger:hilt-android:$daggerVersion")
+	ksp("com.google.dagger:hilt-android-compiler:$daggerVersion")
+	implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
 
 	// Coil
 	implementation("io.coil-kt:coil-compose:2.4.0")

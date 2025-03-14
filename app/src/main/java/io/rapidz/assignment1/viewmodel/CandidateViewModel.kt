@@ -1,51 +1,84 @@
 package io.rapidz.assignment1.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rapidz.assignment1.data.Candidate
-import io.rapidz.assignment1.repository.CandidateRepository
+import io.rapidz.assignment1.data.CandidateUiState
+import io.rapidz.assignment1.repository.Repository
+import io.rapidz.assignment1.storage.DataStoreInterface
+import io.rapidz.assignment1.storage.DataStoreManager
+import io.rapidz.assignment1.storage.DataStoreValue
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CandidateViewModel @Inject constructor (
-	private val candidateRepository : CandidateRepository
+	private val repository : Repository,
+	private val dataStore: DataStoreInterface
 ) : ViewModel() {
 
-	private var _candidateId: Long? = null
-	val candidateId: Long?
-		get() = _candidateId
+	private val candidateUiState = MutableStateFlow(CandidateUiState())
+	val uiState: StateFlow<CandidateUiState> = candidateUiState
 
-	fun insertCandidateAndGetId(candidate: Candidate, onResult: (Long?) -> Unit) {
+	init {
 		viewModelScope.launch {
-			val newId = candidateRepository.insertCandidate(candidate)
-			onResult(newId)
+			val name = dataStore.readFromDataStore(DataStoreManager.CANDIDATE_NAME) ?: ""
+			candidateUiState.update { it.copy(name = name) }
+		}
+		viewModelScope.launch {
+			val email = dataStore.readFromDataStore(DataStoreManager.CANDIDATE_EMAIL) ?: ""
+			candidateUiState.update { it.copy(email = email) }
 		}
 	}
 
-	fun getCandidateByEmail(email: String, onResult: (Candidate?) -> Unit) {
+	fun onNameChange(newName : String){
+		candidateUiState.update { it.copy(name=newName) }
+	}
+
+	fun onEmailChange(newEmail : String){
+		candidateUiState.update { it.copy(email=newEmail) }
+	}
+
+	fun registerCandidate(onNavigate:(Long, Boolean)-> Unit){
+		val name = candidateUiState.value.name
+		val email = candidateUiState.value.email
+		if (name.isBlank() || email.isBlank()) return
+
 		viewModelScope.launch {
-			val candidate = candidateRepository.getCandidateByEmail(email)
-			onResult(candidate)
+			repository.getCandidateByEmail(email)?.let { existingCandidate ->
+				val candidateId = existingCandidate.id
+				val answer = repository.getAnswersByCandidate(candidateId).first()
+				val usePreviousData = answer.isNotEmpty() && answer.any{it.answerText.isNotEmpty()}
+
+				if (usePreviousData){
+					candidateUiState.value = uiState.value.copy(showDialog = true, candidateId = candidateId)
+				} else {
+					onNavigate(candidateId, false)
+				}
+			} ?: run {
+				val candidateId = repository.insertCandidate(Candidate(name=name, emailAddress = email))
+				dataStore.writeMultipleToDataStore(
+					DataStoreValue.StringValue(DataStoreManager.CANDIDATE_NAME, name),
+					DataStoreValue.StringValue(DataStoreManager.CANDIDATE_EMAIL, email)
+				)
+				onNavigate(candidateId, false)
+			}
 		}
 	}
 
-	fun getAllCandidates(onResult: (List<Candidate>) -> Unit) {
-		viewModelScope.launch {
-			val candidates = candidateRepository.getAllCandidates()
-			onResult(candidates)
-		}
+	fun onContinueTest(){
+		candidateUiState.value = candidateUiState.value.copy(showDialog = false)
 	}
-}
 
-class CandidateViewModelFactory(private val candidateRepository: CandidateRepository) : ViewModelProvider.Factory {
-	override fun <T : ViewModel> create(modelClass: Class<T>): T {
-		if (modelClass.isAssignableFrom(CandidateViewModel::class.java)) {
-			@Suppress("UNCHECKED_CAST")
-			return CandidateViewModel(candidateRepository) as T
+	fun onStartNewTest(){
+		viewModelScope.launch {
+			repository.deleteAnswersForCandidate(candidateUiState.value.candidateId ?: return@launch)
+			candidateUiState.value = candidateUiState.value.copy(showDialog = false)
 		}
-		throw IllegalArgumentException("Unknown ViewModel class")
 	}
 }

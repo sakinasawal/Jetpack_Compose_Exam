@@ -16,9 +16,11 @@ import io.rapidz.assignment1.*
 import io.rapidz.assignment1.ui.AdminTheme
 import io.rapidz.assignment1.ui.DefaultTheme
 import io.rapidz.assignment1.ui.md_theme_default_primaryContainer
+import io.rapidz.assignment1.ui.spacing_10
+
 
 @Composable
-fun RoleSelectionScreen(navController: NavController? = null) {
+fun RoleSelectionScreen(navController: NavController? = LocalNavController.current) {
 
 	Column(
 		modifier = Modifier
@@ -44,7 +46,7 @@ fun RoleSelectionScreen(navController: NavController? = null) {
 			AdminTheme {
 				AppButton(
 					textRes = R.string.admin,
-					onClick = {navController!!.navigate(Screen.AdminHome)},
+					onClick = {navController?.navigate(Screen.AdminHome)},
 					modifier = Modifier.fillMaxWidth()
 				)
 			}
@@ -55,7 +57,7 @@ fun RoleSelectionScreen(navController: NavController? = null) {
 				AppButton(
 					textRes = R.string.candidate,
 					onClick = {
-						 navController?.navigate(Screen.Candidate)
+						 navController?.navigate(Screen.CandidateRegister)
 					},
 					modifier = Modifier.fillMaxWidth()
 				)

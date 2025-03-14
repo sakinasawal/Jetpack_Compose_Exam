@@ -8,7 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rapidz.assignment1.data.Answer
 import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
-import io.rapidz.assignment1.repository.TestRepository
+import io.rapidz.assignment1.repository.Repository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,7 +19,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class TestViewModel @Inject constructor (private val repository: TestRepository
+class TestViewModel @Inject constructor (
+	private val repository: Repository
 ) : ViewModel() {
 
 	private val answers = MutableStateFlow<List<Answer>>(emptyList())
@@ -61,7 +62,7 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 		)
 	)
 
-	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, remainingTime: Int, initialTime : Int, questionType: QuestionType, defaultAnswer: String, adminScore: Int? = null, isAdmin : Boolean = false) {
+	fun saveAnswer(questionId: Int, answer: String, candidateId : Long, remainingTime: Int? = 0, initialTime : Int? = 0, questionType: QuestionType, defaultAnswer: String, adminScore: Int? = null, isAdmin : Boolean = false) {
 		viewModelScope.launch {
 			val existingAnswer = answers.value.find { it.questionId == questionId && it.candidateId == candidateId }
 
@@ -78,21 +79,21 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 					else -> "?"
 				}
 
-				val timeSpent = initialTime - remainingTime
-				val totalTimeForCandidate = totalTimeTaken.value[candidateId] ?: 0
-				val totalTime = totalTimeForCandidate + timeSpent
+//				val timeSpent = initialTime - remainingTime
+//				val totalTimeForCandidate = totalTimeTaken.value[candidateId] ?: 0
+//				val totalTime = totalTimeForCandidate + timeSpent
 
 				if (existingAnswer != null) {
-					repository.updateAnswer(existingAnswer.copy(answerText = answer, score = score, remainingTime = remainingTime, totalTime = totalTime))
+					repository.updateAnswer(existingAnswer.copy(answerText = answer, score = score, remainingTime = 0, totalTime = 0))
 				} else {
 					repository.saveAnswer(
-						Answer(questionId = questionId, answerText = answer, candidateId = candidateId, defaultAnswer = defaultAnswer, score = score, remainingTime = remainingTime, totalTime = totalTime))
+						Answer(questionId = questionId, answerText = answer, candidateId = candidateId, defaultAnswer = defaultAnswer, score = score, remainingTime = 0, totalTime = 0))
 				}
 
-				val newTotalTime = totalTimeForCandidate + timeSpent
-				totalTimeTaken.value = totalTimeTaken.value.toMutableMap().apply {
-					put(candidateId, newTotalTime)
-				}
+//				val newTotalTime = totalTimeForCandidate + timeSpent
+//				totalTimeTaken.value = totalTimeTaken.value.toMutableMap().apply {
+//					put(candidateId, newTotalTime)
+//				}
 			}
 		}
 	}
@@ -136,14 +137,4 @@ class TestViewModel @Inject constructor (private val repository: TestRepository
 		}
 	}
 	
-}
-
-class TestViewModelFactory(private val testRepository: TestRepository) : ViewModelProvider.Factory {
-	override fun <T : ViewModel> create(modelClass: Class<T>): T {
-		if (modelClass.isAssignableFrom(TestViewModel::class.java)) {
-			@Suppress("UNCHECKED_CAST")
-			return TestViewModel(testRepository) as T
-		}
-		throw IllegalArgumentException("Unknown ViewModel class")
-	}
 }

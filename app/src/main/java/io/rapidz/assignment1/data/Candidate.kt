@@ -5,8 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "candidates")
 data class Candidate(
-	@PrimaryKey(autoGenerate = true)
-	val id : Long = 0,
+	@PrimaryKey val id : Long = 0,
 	val name: String,
 	val emailAddress: String
 )

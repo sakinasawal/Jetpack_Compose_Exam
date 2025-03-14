@@ -1,4 +1,4 @@
-package io.rapidz.assignment1
+package io.rapidz.assignment1.ui
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp

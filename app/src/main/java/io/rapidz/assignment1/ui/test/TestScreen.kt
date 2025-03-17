@@ -31,7 +31,6 @@ import io.rapidz.assignment1.ui.GeneralAlertDialog
 import io.rapidz.assignment1.LocalNavController
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.Screen
-import io.rapidz.assignment1.data.Answer
 import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.navigate
@@ -40,6 +39,7 @@ import io.rapidz.assignment1.ui.spacing_24
 import io.rapidz.assignment1.ui.spacing_4
 import io.rapidz.assignment1.ui.spacing_8
 import io.rapidz.assignment1.ui.*
+import io.rapidz.assignment1.viewmodel.NavigationDirection
 import io.rapidz.assignment1.viewmodel.TestViewModel
 
 @Composable
@@ -53,47 +53,58 @@ fun TestScreen(
 	val currentQuestion = uiState.questions.getOrNull(uiState.currentQuestionIndex)
 	val selectedAnswer = currentQuestion?.let { uiState.answers[it.id]?.answerText.orEmpty() } ?: ""
 
-	BottomAppBar(
-		onLeftArrowClick = { viewModel.goToPreviousQuestion() },
-		onRightArrowClick = { viewModel.goToNextQuestion() },
-		onFloatingButtonClick = { viewModel.checkAllQuestions() }
-	){
-		Column(
-			modifier = Modifier
-				.fillMaxSize()
-				.padding(spacing_20)
+	var isShowEndTestDialog by remember { mutableStateOf(false) }
+	val isCompleted = selectedAnswer.isNotEmpty()
+
+	val themeWrapper: @Composable (@Composable () -> Unit) -> Unit = if (isCompleted) {
+		{ content -> CompletedQuestionTheme(content) }
+	} else {
+		{ content -> UncompletedQuestionTheme(content) }
+	}
+
+	themeWrapper{
+		BottomAppBar(
+			onLeftArrowClick = { viewModel.goToPreviousQuestion() },
+			onRightArrowClick = { viewModel.goToNextQuestion() },
+			onFloatingButtonClick = { viewModel.checkAllQuestions() }
 		){
-			currentQuestion?.let { question ->
-				TextLabelTitle(
-					text = "Question" + " ${question.id}",
-					typographyStyle = AppTypography.titleLarge
-				)
-
-				Spacer(modifier = Modifier.height(spacing_20))
-
-				TextLabelTitle(
-					text = question.questionText
-				)
-
-				Spacer(modifier = Modifier.height(spacing_4))
-
-				when (question.questionType){
-					QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(
-						options = question.options,
-						currentAnswer = selectedAnswer.orEmpty(),
-						onAnswerChange = {viewModel.saveAnswer(question.id, it)}
+			Column(
+				modifier = Modifier
+					.fillMaxSize()
+					.padding(spacing_20)
+			){
+				currentQuestion?.let { question ->
+					TextLabelTitle(
+						text = "Question" + " ${question.id}",
+						typographyStyle = AppTypography.titleLarge
 					)
 
-					QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(
-						options = question.options,
-						currentAnswer = selectedAnswer.orEmpty(),
-						onAnswerChange = { viewModel.saveAnswer(question.id, it) }
+					Spacer(modifier = Modifier.height(spacing_20))
+
+					TextLabelTitle(
+						text = question.questionText
 					)
 
-					QuestionType.FREE_TEXT -> Textarea(
-						initialText = selectedAnswer.orEmpty(),
-						onAnswerChange = { viewModel.saveAnswer(question.id, it) }
-					)
+					Spacer(modifier = Modifier.height(spacing_4))
+
+					when (question.questionType){
+						QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(
+							options = question.options,
+							currentAnswer = selectedAnswer,
+							onAnswerChange = {viewModel.saveAnswer(question.id, it)}
+						)
+
+						QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(
+							options = question.options,
+							currentAnswer = selectedAnswer,
+							onAnswerChange = { viewModel.saveAnswer(question.id, it) }
+						)
+
+						QuestionType.FREE_TEXT -> Textarea(
+							initialText = selectedAnswer,
+							onAnswerChange = { viewModel.saveAnswer(question.id, it) }
+						)
+					}
 				}
 			}
 		}
@@ -102,7 +113,14 @@ fun TestScreen(
 	// Display dialog
 	when (dialogState) {
 		DialogType.QUESTION_NOT_COMPLETE -> QuestionNotCompleteDialog(
-			onProceed = { viewModel.dismissDialog() },
+			onProceed = {
+				viewModel.dismissDialog()
+				when(viewModel.lastNavigation){
+					NavigationDirection.NEXT -> viewModel.goToNextQuestion(true)
+					NavigationDirection.PREVIOUS -> viewModel.goToPreviousQuestion(true)
+					else -> {}
+				}
+			},
 			onDismiss = { viewModel.dismissDialog() }
 		)
 
@@ -110,7 +128,7 @@ fun TestScreen(
 			onDismiss = { viewModel.dismissDialog() },
 			onEndTest = {
 				viewModel.dismissDialog()
-				navController?.navigate(Screen.Role)
+				isShowEndTestDialog = true
 			}
 		)
 
@@ -118,11 +136,17 @@ fun TestScreen(
 			onDismiss = { viewModel.dismissDialog() },
 			onEndTest = {
 				viewModel.dismissDialog()
-				navController?.navigate(Screen.Role)
+				isShowEndTestDialog = true
 			}
 		)
 
 		null -> {}
+	}
+
+	if (isShowEndTestDialog){
+		EndOfTestDialog(
+			navController = navController,
+			onDismiss = { isShowEndTestDialog = false })
 	}
 }
 
@@ -219,13 +243,13 @@ fun Textarea(
 			.pointerInput(Unit) {
 				detectTapGestures(onTap = {
 					keyboardController?.hide()
-					focusManager.clearFocus() })
+					focusManager.clearFocus()
+				})
 			},
 		readOnly = readOnly
 	)
 }
 
-// TODO : move to utils
 // ================= Region Dialog =====================
 
 enum class DialogType {

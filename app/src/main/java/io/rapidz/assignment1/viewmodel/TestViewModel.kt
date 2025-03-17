@@ -16,6 +16,7 @@ import io.rapidz.assignment1.repository.Repository
 import io.rapidz.assignment1.ui.test.DialogType
 import io.rapidz.assignment1.ui.test.isQuestionComplete
 import io.rapidz.assignment1.utils.Constants
+import io.rapidz.assignment1.utils.TimeUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -42,6 +43,8 @@ class TestViewModel @Inject constructor (
 
 	private val candidateId: Long = savedStateHandle[Key.CANDIDATE_ID] ?: 0L
 	private val usePreviousData: Boolean = savedStateHandle[Key.USE_PREVIOUS_DATA] ?: false
+
+	var lastNavigation: NavigationDirection? = null
 
 	init {
 		loadQuestions()
@@ -70,27 +73,63 @@ class TestViewModel @Inject constructor (
 		viewModelScope.launch {
 			val answer = repository.getAnswersByCandidate(candidateId)
 			val existingAnswer = answer.first().find { it.questionId == questionId }
-			if (existingAnswer != null){
-				repository.updateAnswer(existingAnswer.copy(answerText = answerText))
-			} else {
-				repository.saveAnswer(Answer(questionId = questionId, candidateId = candidateId, answerText = answerText))
+			val question = uiState.value.questions.find { it.id == questionId }
+
+			if (question != null){
+				val totalQuestion = uiState.value.questions.size.takeIf { it > 0 } ?: 1
+				val scorePerQuestion = TimeUtils.MAX_SCORE / totalQuestion
+
+				val score = when (question.questionType){
+					QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE -> {
+						if(answerText == question.defaultAnswer) scorePerQuestion else 0
+					}
+
+					QuestionType.FREE_TEXT -> null
+				}
+
+				val answerScore = Answer(questionId = questionId, candidateId = candidateId, answerText = answerText, score = score)
+
+				if (existingAnswer != null){
+					repository.updateAnswer(existingAnswer.copy(answerText = answerText, score = score))
+				} else {
+					repository.saveAnswer(answerScore)
+				}
+
+				// Update the UI state
+				testUiState.update { currentState ->
+					val updatedAnswers = currentState.answers.toMutableMap().apply {
+						put(questionId, answerScore)
+					}
+					currentState.copy(answers = updatedAnswers)
+				}
 			}
+
 		}
 	}
 
 	// region Bottom Nav ========================================================================================================
 
-	fun goToNextQuestion() {
-		val currentIndex = testUiState.value.currentQuestionIndex
-		if (currentIndex < testUiState.value.questions.size - 1){
-			testUiState.value = testUiState.value.copy(currentQuestionIndex = currentIndex + 1)
+	fun goToNextQuestion(onProceed : Boolean = false) {
+		if (onProceed || checkCurrentQuestionCompletion()){
+			val currentIndex = testUiState.value.currentQuestionIndex
+			if (currentIndex < testUiState.value.questions.size - 1){
+				testUiState.value = testUiState.value.copy(currentQuestionIndex = currentIndex + 1)
+			}
+		} else {
+			lastNavigation = NavigationDirection.NEXT
+			dialogUiState.value = DialogType.QUESTION_NOT_COMPLETE
 		}
 	}
 
-	fun goToPreviousQuestion() {
-		val currentIndex = testUiState.value.currentQuestionIndex
-		if (currentIndex > 0){
-			testUiState.value = testUiState.value.copy(currentQuestionIndex = currentIndex - 1)
+	fun goToPreviousQuestion(onProceed : Boolean = false) {
+		if (onProceed || checkCurrentQuestionCompletion()){
+			val currentIndex = testUiState.value.currentQuestionIndex
+			if (currentIndex > 0){
+				testUiState.value = testUiState.value.copy(currentQuestionIndex = currentIndex - 1)
+			}
+		} else {
+			lastNavigation = NavigationDirection.PREVIOUS
+			dialogUiState.value = DialogType.QUESTION_NOT_COMPLETE
 		}
 	}
 
@@ -98,13 +137,18 @@ class TestViewModel @Inject constructor (
 
 	// region dialog ========================================================================================================
 
-	fun checkCurrentQuestionCompletion(){
+	private fun checkCurrentQuestionCompletion() : Boolean {
 		val currentIndex = uiState.value.currentQuestionIndex
 		val currentQuestion = uiState.value.questions.getOrNull(currentIndex)
-		val currentAnswer = currentQuestion?.let { uiState.value.answers[it.id]?.answerText.orEmpty() } ?: ""
+		val currentAnswer = currentQuestion?.let { uiState.value.answers[it.id]?.answerText.orEmpty() }
 
-		if (currentQuestion != null && !isQuestionComplete(currentQuestion, currentAnswer)) {
-			dialogUiState.value = DialogType.QUESTION_NOT_COMPLETE
+		return if (currentQuestion != null) {
+			when (currentQuestion.questionType){
+				QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE -> !currentAnswer.isNullOrEmpty()
+				QuestionType.FREE_TEXT -> !currentAnswer.isNullOrBlank()
+			}
+		} else {
+			true
 		}
 	}
 
@@ -126,4 +170,8 @@ class TestViewModel @Inject constructor (
 	}
 
 	// end region
+}
+
+enum class NavigationDirection {
+	NEXT, PREVIOUS
 }

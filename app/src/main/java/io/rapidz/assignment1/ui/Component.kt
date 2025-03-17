@@ -214,3 +214,4 @@ fun isValidEmail(email : String) : Boolean {
 	val pattern = Pattern.compile(emailRegex)
 	return pattern.matcher(email).matches()
 }
+

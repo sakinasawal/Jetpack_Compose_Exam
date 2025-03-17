@@ -24,7 +24,6 @@ fun BottomAppBarPreview() {
 
 @Composable
 fun BottomAppBar(
-	remainingTime: Int? = 0,
 	onLeftDoubleArrowClick : (() -> Unit)? = null,
 	onLeftArrowClick : (() -> Unit)? = null,
 	onRightArrowClick : (() -> Unit)? = null,
@@ -35,7 +34,6 @@ fun BottomAppBar(
 	Scaffold(
 		bottomBar = {
 			BottomAppBar(
-//				containerColor = if(remainingTime!! > 60) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.error,
 				actions = {
 					IconButton(onClick = { onLeftDoubleArrowClick!!()}) {
 						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
@@ -59,12 +57,7 @@ fun BottomAppBar(
 				},
 				floatingActionButton = {
 					FloatingActionButton(
-						containerColor = if (remainingTime!! < 60) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.primaryContainer,
-						onClick = {
-							if (onFloatingButtonClick != null) {
-								onFloatingButtonClick()
-							}
-						},
+						onClick = { onFloatingButtonClick!!() },
 						elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
 					) {
 						Icon(Icons.Default.DoneAll, null)

@@ -75,25 +75,22 @@ class TestViewModel @Inject constructor (
 			val existingAnswer = answer.first().find { it.questionId == questionId }
 			val question = uiState.value.questions.find { it.id == questionId }
 
-			if (question != null){
+			question?.let { q ->
 				val totalQuestion = uiState.value.questions.size.takeIf { it > 0 } ?: 1
 				val scorePerQuestion = TimeUtils.MAX_SCORE / totalQuestion
 
-				val score = when (question.questionType){
+				val score = when (q.questionType){
 					QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE -> {
-						if(answerText == question.defaultAnswer) scorePerQuestion else 0
+						if(answerText == q.defaultAnswer) scorePerQuestion else 0
 					}
-
 					QuestionType.FREE_TEXT -> null
 				}
 
 				val answerScore = Answer(questionId = questionId, candidateId = candidateId, answerText = answerText, score = score)
 
-				if (existingAnswer != null){
-					repository.updateAnswer(existingAnswer.copy(answerText = answerText, score = score))
-				} else {
-					repository.saveAnswer(answerScore)
-				}
+				existingAnswer?.let {
+					repository.updateAnswer(it.copy(answerText = answerText, score = score))
+				} ?: repository.saveAnswer(answerScore)
 
 				// Update the UI state
 				testUiState.update { currentState ->
@@ -103,7 +100,6 @@ class TestViewModel @Inject constructor (
 					currentState.copy(answers = updatedAnswers)
 				}
 			}
-
 		}
 	}
 
@@ -140,16 +136,14 @@ class TestViewModel @Inject constructor (
 	private fun checkCurrentQuestionCompletion() : Boolean {
 		val currentIndex = uiState.value.currentQuestionIndex
 		val currentQuestion = uiState.value.questions.getOrNull(currentIndex)
-		val currentAnswer = currentQuestion?.let { uiState.value.answers[it.id]?.answerText.orEmpty() }
 
-		return if (currentQuestion != null) {
-			when (currentQuestion.questionType){
-				QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE -> !currentAnswer.isNullOrEmpty()
-				QuestionType.FREE_TEXT -> !currentAnswer.isNullOrBlank()
+		return currentQuestion?.let { question ->
+			val currentAnswer = uiState.value.answers[question.id]?.answerText.orEmpty()
+			when(question.questionType){
+				QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE -> currentAnswer.isNotEmpty()
+				QuestionType.FREE_TEXT -> currentAnswer.isNotBlank()
 			}
-		} else {
-			true
-		}
+		} ?: true
 	}
 
 	fun checkAllQuestions(){

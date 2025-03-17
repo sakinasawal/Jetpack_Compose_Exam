@@ -8,10 +8,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
-import io.rapidz.assignment1.AppButton
+import io.rapidz.assignment1.ui.AppButton
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.ui.AppTypography
-import io.rapidz.assignment1.TextLabel
+import io.rapidz.assignment1.ui.TextLabel
 import io.rapidz.assignment1.*
 import io.rapidz.assignment1.ui.AdminTheme
 import io.rapidz.assignment1.ui.DefaultTheme

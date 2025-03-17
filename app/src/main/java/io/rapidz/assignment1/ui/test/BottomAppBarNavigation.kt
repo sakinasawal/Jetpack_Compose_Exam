@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import io.rapidz.assignment1.data.Role
 import io.rapidz.assignment1.ui.*
 
 @Preview
@@ -23,7 +24,6 @@ fun BottomAppBarPreview() {
 
 @Composable
 fun BottomAppBar(
-	timer: String? = "",
 	remainingTime: Int? = 0,
 	onLeftDoubleArrowClick : (() -> Unit)? = null,
 	onLeftArrowClick : (() -> Unit)? = null,
@@ -35,7 +35,7 @@ fun BottomAppBar(
 	Scaffold(
 		bottomBar = {
 			BottomAppBar(
-				containerColor = if(remainingTime!! > 60) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.error,
+//				containerColor = if(remainingTime!! > 60) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.error,
 				actions = {
 					IconButton(onClick = { onLeftDoubleArrowClick!!()}) {
 						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
@@ -52,7 +52,7 @@ fun BottomAppBar(
 					Row{
 						Spacer(modifier = Modifier.width(spacing_20))
 						Text(
-							text = timer!!,
+							text = "00:00",
 							style = MaterialTheme.typography.bodyMedium
 						)
 					}

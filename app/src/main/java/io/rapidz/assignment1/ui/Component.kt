@@ -1,4 +1,4 @@
-package io.rapidz.assignment1
+package io.rapidz.assignment1.ui
 
 import android.annotation.SuppressLint
 import androidx.annotation.StringRes
@@ -22,8 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import io.rapidz.assignment1.ui.spacing_10
-import io.rapidz.assignment1.ui.spacing_8
+import io.rapidz.assignment1.R
 import java.util.regex.Pattern
 
 @Composable
@@ -66,9 +65,14 @@ fun InputTextField(
 		onValueChange = onValueChange,
 		modifier = modifier.fillMaxWidth(),
 		placeholder = { Text(placeholder) },
-//		keyboardActions = KeyboardOptions.Default.copy(
-//			imeAction = ImeAction.Done
-//		)
+		keyboardOptions = KeyboardOptions.Default.copy(
+			imeAction = ImeAction.Done
+		),
+		keyboardActions = KeyboardActions(
+			onDone = {
+				keyboardController?.hide() // Dismiss keyboard when "Done" is pressed
+			}
+		),
 	)
 }
 

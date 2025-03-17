@@ -76,7 +76,7 @@ fun NavGraphBuilder.composable(screen: Screen) {
 				val candidateId = entry.arguments?.getLong(Key.CANDIDATE_ID)
 				val usePreviousData = entry.arguments?.getBoolean(Key.USE_PREVIOUS_DATA) ?: false
 				if (candidateId != null) {
-					TestScreen(candidateId = candidateId, usePreviousData = usePreviousData)
+					TestScreen()
 				} else {
 					error("Candidate ID is required.")
 				}

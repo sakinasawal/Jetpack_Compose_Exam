@@ -6,3 +6,9 @@ data class CandidateUiState(
 	val showDialog: Boolean = false,
 	val candidateId: Long? = null
 )
+
+data class TestUiState(
+	val questions: List<Question> = emptyList(),
+	val answers: Map<Int, Answer> = emptyMap(),
+	val currentQuestionIndex: Int = 0
+)

@@ -1,5 +1,6 @@
 package io.rapidz.assignment1.repository
 
+import androidx.room.Update
 import io.rapidz.assignment1.dao.AppDao
 import io.rapidz.assignment1.data.Answer
 import io.rapidz.assignment1.data.Candidate
@@ -33,14 +34,6 @@ class Repository @Inject constructor (
 		appDao.insertAnswer(answer)
 	}
 
-	suspend fun updateAnswer(answer: Answer){
-		appDao.updateAnswer(answer)
-	}
-
-	fun getAnswers(): Flow<List<Answer>> {
-		return appDao.getAllAnswers()
-	}
-
 	fun getAnswersByCandidate(candidateId : Long) : Flow<List<Answer>> {
 		return appDao.getAnswersByCandidate(candidateId)
 	}
@@ -49,20 +42,8 @@ class Repository @Inject constructor (
 		appDao.deleteAnswersByCandidate(candidateId)
 	}
 
-	suspend fun getTotalTimeTaken(candidateId: Long): Int {
-		return appDao.getTotalTimeTaken(candidateId)
-	}
-
-	suspend fun updateAdminScore(questionId: Int, candidateId: Long, adminScore: Int) {
-		appDao.updateAdminScore(questionId, candidateId, adminScore)
-	}
-
-	suspend fun getRemainingTimeForCandidate(candidateId: Long): Int {
-		return appDao.getRemainingTime(candidateId)
-	}
-
-	suspend fun updateRemainingTime(candidateId: Long, remainingTime: Int) {
-		appDao.updateRemainingTime(candidateId, remainingTime)
+	suspend fun updateAnswer(answer: Answer){
+		appDao.updateAnswer(answer)
 	}
 
 	// end region

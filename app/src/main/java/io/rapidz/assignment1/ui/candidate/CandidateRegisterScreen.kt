@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import io.rapidz.assignment1.R
-import io.rapidz.assignment1.TextLabel
+import io.rapidz.assignment1.ui.TextLabel
 import io.rapidz.assignment1.ui.AppTypography
 import androidx.compose.ui.Modifier
 import io.rapidz.assignment1.*
@@ -17,8 +17,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
-import java.util.regex.Pattern
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
 

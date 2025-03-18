@@ -1,162 +1,99 @@
 package io.rapidz.assignment1.ui.admin
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import io.rapidz.assignment1.viewmodel.AdminViewModel
+import io.rapidz.assignment1.viewmodel.TestViewModel
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Dangerous
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import io.rapidz.assignment1.data.QuestionType
+import io.rapidz.assignment1.data.Role
+import io.rapidz.assignment1.ui.AdminTheme
+import io.rapidz.assignment1.ui.AppTypography
+import io.rapidz.assignment1.ui.TextLabelTitle
+import io.rapidz.assignment1.ui.md_theme_admin_error
+import io.rapidz.assignment1.ui.spacing_20
+import io.rapidz.assignment1.ui.spacing_4
+import io.rapidz.assignment1.ui.test.BottomAppBar
+import io.rapidz.assignment1.ui.test.CheckBoxAnswer
+import io.rapidz.assignment1.ui.test.RadioButtonAnswer
+import io.rapidz.assignment1.ui.test.Textarea
+import io.rapidz.assignment1.utils.Constants
 
 @Composable
-fun AdminTestScreen(
-	candidateId : Long,
-) {
-//	val context = LocalContext.current
-//	val database = remember { AppDatabase.getDatabase(context) }
-//	val repository = remember { TestRepository(database.answerDao()) }
-//	val viewModel: TestViewModel = viewModel(factory = TestViewModelFactory(repository))
-//	val candidateAnswers by viewModel.getAnswersByCandidate(candidateId).collectAsState(initial = emptyList())
-//	val questions = viewModel.questions
-//	var currentIndex by remember { mutableIntStateOf(0) }
-//
-//	val question = questions[currentIndex]
-//	val answer = candidateAnswers.find { it.questionId == question.id }
-//
-//	val remainingTime = answer?.remainingTime ?: 0
-//
-//	val totalTimeSpent = answer?.totalTime ?: 0
-//	val formattedTimeSpent = formatSecondsToTime(totalTimeSpent)
-//
-//	var isDoneClicked by remember { mutableStateOf(false) }
-//	var isCloseClicked by remember { mutableStateOf(false) }
-//
-//	LaunchedEffect(answer) {
-//		if (answer != null) {
-//			isDoneClicked = answer.score == "10"
-//			isCloseClicked = answer.score == "0"
-//		}
-//	}
-//
-//	AdminTheme {
-//		val isAnswerCorrect = when (question.questionType) {
-//			QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE -> {
-//				answer?.answerText == question.defaultAnswer
-//			}
-//			else -> false
-//		}
-//
-//		val (doneIconVisible, doneIconColor) = when (question.questionType) {
-//			QuestionType.FREE_TEXT -> {
-//				when {
-//					isDoneClicked -> Pair(true, Color(0xFF018786))
-//					isCloseClicked -> Pair(false, Color.Black)
-//					else -> Pair(true, Color.Black)
-//				}
-//			}
-//			else -> Pair(isAnswerCorrect, Color(0xFF018786))
-//		}
-//
-//		val (closeIconVisible, closeIcon, closeIconColor) = when (question.questionType) {
-//			QuestionType.FREE_TEXT -> {
-//				when {
-//					isCloseClicked -> Triple(true, Icons.Default.Dangerous, md_theme_admin_error)
-//					isDoneClicked -> Triple(false, Icons.Default.Close, Color.Black)
-//					else -> Triple(true, Icons.Default.Close, Color.Black)
-//				}
-//			}
-//			else -> Triple(!isAnswerCorrect, Icons.Default.Dangerous, md_theme_admin_error)
-//		}
-//
-//		BottomAppBarAdmin(
-//			timer = formattedTimeSpent,
-//			showDoneIcon = doneIconVisible,
-//			showCloseIcon = closeIconVisible,
-//			closeIcon = closeIcon,
-//			closeIconColor = closeIconColor,
-//			doneIconColor = doneIconColor,
-//			onDoneClick = {
-//				if (question.questionType == QuestionType.FREE_TEXT) {
-//					viewModel.saveAnswer(
-//						questionId = question.id,
-//						answer = answer?.answerText.orEmpty(),
-//						candidateId = candidateId,
-//						remainingTime = remainingTime,
-//						initialTime = remainingTime,
-//						questionType = question.questionType,
-//						defaultAnswer = question.defaultAnswer,
-//						adminScore = 10,
-//						isAdmin = true
-//					)
-//					isDoneClicked = true
-//					isCloseClicked = false
-//				}
-//			},
-//			onCloseClick = {
-//				if (question.questionType == QuestionType.FREE_TEXT) {
-//					viewModel.saveAnswer(
-//						questionId = question.id,
-//						answer = answer?.answerText.orEmpty(),
-//						candidateId = candidateId,
-//						remainingTime = remainingTime,
-//						initialTime = remainingTime,
-//						questionType = question.questionType,
-//						defaultAnswer = question.defaultAnswer,
-//						adminScore = 0,
-//						isAdmin = true
-//					)
-//					isCloseClicked = true
-//					isDoneClicked = false
-//				}
-//			},
-//			onLeftArrowClick = {
-//				if (currentIndex > 0) {
-//					currentIndex--
-//				}
-//			},
-//			onRightArrowClick = {
-//				if (currentIndex < questions.size - 1) {
-//					currentIndex++
-//				}
-//			}
-//		){
-//			Column(
-//				modifier = Modifier
-//					.fillMaxSize()
-//					.background(color = md_theme_default_primaryContainer)
-//					.padding(spacing_20)
-//			){
-//
-//				TextLabelTitle(
-//					text = "Question " + question.id,
-//					typographyStyle = AppTypography.titleLarge
-//				)
-//
-//				Spacer(modifier = Modifier.height(spacing_20))
-//
-//				TextLabelTitle(
-//					text = question.questionText
-//				)
-//
-//				Spacer(modifier = Modifier.height(spacing_4))
-//
-//				when (question.questionType){
-//					QuestionType.SINGLE_CHOICE -> answer?.let { RadioButtonAnswer(
-//						options = question.options,
-//						currentAnswer = it.answerText,
-//						onAnswerChange = { })
-//					}
-//					QuestionType.MULTIPLE_CHOICE -> answer?.let {
-//						CheckBoxAnswer(
-//							options = question.options,
-//							currentAnswer = it.answerText,
-//							onAnswerChange = {}
-//						)
-//					}
-//					QuestionType.FREE_TEXT -> {
-//						answer?.let {
-//							Textarea(
-//								initialText = it.answerText,
-//								readOnly = true
-//							)
-//						}
-//					}
-//				}
-//			}
-//		}
-//	}
+fun AdminTestScreen(viewModel : AdminViewModel = hiltViewModel()) {
+
+	val uiState by viewModel.uiState.collectAsState()
+	val currentQuestion = uiState.questions.getOrNull(uiState.currentQuestionIndex)
+	val candidateAnswer = currentQuestion?.let { uiState.answers[it.id]?.answerText.orEmpty() }
+	val isCorrectAnswer = currentQuestion?.let { viewModel.isAnswerCorrect(it, candidateAnswer) } == true
+	val isFreeText = currentQuestion?.questionType == QuestionType.FREE_TEXT
+
+	AdminTheme {
+		BottomAppBar(
+			role = Role(Constants.Role.ROLE_ADMIN),
+			showDoneIcon = if(isFreeText) true else isCorrectAnswer,
+			showCloseIcon = if (isFreeText) true else !isCorrectAnswer,
+			closeIcon = if (isFreeText) Icons.Default.Close else Icons.Default.Dangerous,
+			closeIconColor = if (isFreeText) Color.Black else md_theme_admin_error,
+			doneIconColor = if (isFreeText) Color.Black else Color(0xFF018786),
+			showFloatBtn = false,
+			onLeftDoubleArrowClick = { viewModel.goToFirstQuestion() },
+			onLeftArrowClick = { viewModel.goToPreviousQuestion() },
+			onRightArrowClick = { viewModel.goToNextQuestion() },
+			onRightDoubleArrowClick = { viewModel.goToLastQuestion() },
+		){
+			Column(
+				modifier = Modifier
+					.fillMaxSize()
+					.padding(spacing_20)
+			){
+				currentQuestion?.let { question ->
+
+					TextLabelTitle(
+						text = "Question ${question.id}",
+						typographyStyle = AppTypography.titleLarge
+					)
+
+					Spacer(modifier = Modifier.height(spacing_20))
+
+					TextLabelTitle(text = question.questionText)
+
+					Spacer(modifier = Modifier.height(spacing_4))
+
+					candidateAnswer?.let {
+						when(question.questionType){
+							QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(
+									options = question.options,
+									currentAnswer = it
+							)
+
+							QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(
+								options = question.options,
+								currentAnswer = it
+							)
+
+							QuestionType.FREE_TEXT -> Textarea(
+								initialText = it,
+								readOnly = true
+							)
+						}
+					}
+				}
+			}
+		}
+	}
 }

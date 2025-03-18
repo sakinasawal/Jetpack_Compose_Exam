@@ -1,5 +1,6 @@
 package io.rapidz.assignment1.ui.candidate
 
+import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -17,7 +18,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
@@ -25,8 +26,10 @@ import io.rapidz.assignment1.viewmodel.CandidateViewModel
 @Composable
 fun CandidateRegisterScreen(navController: NavController? = LocalNavController.current) {
 
+	val context = LocalContext.current
 	val viewModel : CandidateViewModel = hiltViewModel()
 	val candidateUiState by viewModel.uiState.collectAsState()
+	val toastMessage by viewModel.toastMessage.collectAsState()
 	val isRegisterEnable = candidateUiState.name.isNotBlank() && candidateUiState.email.isNotBlank() && isValidEmail(candidateUiState.email)
 	val focusManager = LocalFocusManager.current
 	val keyboardController = LocalSoftwareKeyboardController.current
@@ -48,6 +51,11 @@ fun CandidateRegisterScreen(navController: NavController? = LocalNavController.c
 				focusManager.clearFocus()
 			}
 		)
+	}
+
+	toastMessage?.let { message ->
+		Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+		viewModel.clearToastMessage()
 	}
 
 	if (candidateUiState.showDialog){

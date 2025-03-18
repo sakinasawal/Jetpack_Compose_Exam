@@ -51,6 +51,7 @@ fun TextLabelTitle(
 		modifier = modifier)
 }
 
+@SuppressLint("ModifierParameter")
 @Composable
 fun InputTextField(
 	value : String,
@@ -70,7 +71,7 @@ fun InputTextField(
 		),
 		keyboardActions = KeyboardActions(
 			onDone = {
-				keyboardController?.hide() // Dismiss keyboard when "Done" is pressed
+				keyboardController?.hide()
 			}
 		),
 	)
@@ -78,7 +79,35 @@ fun InputTextField(
 
 @SuppressLint("ModifierParameter")
 @Composable
-fun InputTextFieldAdmin(
+fun InputTextSearch(
+	value : String,
+	onValueChange : (String)->Unit,
+	label : String? = null,
+	placeholder: String,
+	modifier : Modifier = Modifier,
+){
+	val keyboardController = LocalSoftwareKeyboardController.current
+
+	TextField(
+		value = value,
+		onValueChange = onValueChange,
+		modifier = modifier.fillMaxWidth(),
+		label = { label?.let {Text(it) } },
+		placeholder = { Text(placeholder) },
+		keyboardOptions = KeyboardOptions.Default.copy(
+			imeAction = ImeAction.Done
+		),
+		keyboardActions = KeyboardActions(
+			onDone = {
+				keyboardController?.hide()
+			}
+		),
+	)
+}
+
+@SuppressLint("ModifierParameter")
+@Composable
+fun InputTextFieldTime(
     value : Int,
     onValueChange : (Int)->Unit,
     label: String,
@@ -86,7 +115,7 @@ fun InputTextFieldAdmin(
 	modifier : Modifier = Modifier,
 ){
 	var textValue by remember(value) { mutableStateOf(if (value == 0) "" else value.toString()) }
-	println("DEBUG: TextField Value = $value")
+
 	TextField(
 		value = textValue,
 		onValueChange = { newValue ->

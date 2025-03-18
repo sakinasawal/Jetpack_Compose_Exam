@@ -46,7 +46,7 @@ fun RoleSelectionScreen(navController: NavController? = LocalNavController.curre
 			AdminTheme {
 				AppButton(
 					textRes = R.string.admin,
-					onClick = {navController?.navigate(Screen.AdminHome)},
+					onClick = {navController?.navigate(Screen.Admin)},
 					modifier = Modifier.fillMaxWidth()
 				)
 			}

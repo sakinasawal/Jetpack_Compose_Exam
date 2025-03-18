@@ -1,30 +1,21 @@
 package io.rapidz.assignment1.viewmodel
 
-import android.os.CountDownTimer
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rapidz.assignment1.Key
 import io.rapidz.assignment1.data.Answer
-import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionData
 import io.rapidz.assignment1.data.QuestionType
-import io.rapidz.assignment1.data.TestUiState
+import io.rapidz.assignment1.data.UiState
 import io.rapidz.assignment1.repository.Repository
 import io.rapidz.assignment1.ui.test.DialogType
 import io.rapidz.assignment1.ui.test.isQuestionComplete
-import io.rapidz.assignment1.utils.Constants
 import io.rapidz.assignment1.utils.TimeUtils
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,8 +26,8 @@ class TestViewModel @Inject constructor (
 	savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-	private val testUiState = MutableStateFlow(TestUiState())
-	val uiState: StateFlow<TestUiState> = testUiState
+	private val testUiState = MutableStateFlow(UiState())
+	val uiState: StateFlow<UiState> = testUiState
 
 	private val dialogUiState = MutableStateFlow<DialogType?>(null)
 	val dialogState: StateFlow<DialogType?> = dialogUiState
@@ -127,6 +118,16 @@ class TestViewModel @Inject constructor (
 			lastNavigation = NavigationDirection.PREVIOUS
 			dialogUiState.value = DialogType.QUESTION_NOT_COMPLETE
 		}
+	}
+
+	fun goToFirstQuestion() {
+		val firstIndex = 0
+		testUiState.value = testUiState.value.copy(currentQuestionIndex = firstIndex)
+	}
+
+	fun goToLastQuestion() {
+		val lastIndex = testUiState.value.questions.lastIndex
+		testUiState.value = testUiState.value.copy(currentQuestionIndex = lastIndex)
 	}
 
 	// end region

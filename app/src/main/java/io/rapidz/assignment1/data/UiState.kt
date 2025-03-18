@@ -7,7 +7,7 @@ data class CandidateUiState(
 	val candidateId: Long? = null
 )
 
-data class TestUiState(
+data class UiState(
 	val questions: List<Question> = emptyList(),
 	val answers: Map<Int, Answer> = emptyMap(),
 	val currentQuestionIndex: Int = 0

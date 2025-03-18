@@ -27,7 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import io.rapidz.assignment1.ui.AppButton
-import io.rapidz.assignment1.ui.InputTextField
+import io.rapidz.assignment1.ui.InputTextSearch
 import io.rapidz.assignment1.LocalNavController
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.Screen
@@ -35,6 +35,7 @@ import io.rapidz.assignment1.ui.TextLabel
 import io.rapidz.assignment1.ui.spacing_20
 import io.rapidz.assignment1.ui.AdminTheme
 import io.rapidz.assignment1.ui.AppTypography
+import io.rapidz.assignment1.ui.InputTextField
 import io.rapidz.assignment1.ui.md_theme_default_background
 
 @Composable

@@ -1,10 +1,12 @@
 package io.rapidz.assignment1.viewmodel
 
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rapidz.assignment1.data.Candidate
 import io.rapidz.assignment1.data.CandidateUiState
+import io.rapidz.assignment1.data.QuestionData
 import io.rapidz.assignment1.repository.Repository
 import io.rapidz.assignment1.storage.DataStoreInterface
 import io.rapidz.assignment1.storage.DataStoreManager
@@ -24,6 +26,11 @@ class CandidateViewModel @Inject constructor (
 
 	private val candidateUiState = MutableStateFlow(CandidateUiState())
 	val uiState: StateFlow<CandidateUiState> = candidateUiState
+
+	private val _toastMessage = MutableStateFlow<String?>(null)
+	val toastMessage: StateFlow<String?> = _toastMessage
+
+	private val totalQuestions = QuestionData.question.size
 
 	init {
 		viewModelScope.launch {
@@ -50,22 +57,37 @@ class CandidateViewModel @Inject constructor (
 		if (name.isBlank() || email.isBlank()) return
 
 		viewModelScope.launch {
-			repository.getCandidateByEmail(email)?.let { existingCandidate ->
-				val candidateId = existingCandidate.id
-				val answer = repository.getAnswersByCandidate(candidateId).first()
-				val usePreviousData = answer.isNotEmpty() && answer.any{it.answerText.isNotEmpty()}
 
-				if (usePreviousData){
-					candidateUiState.value = uiState.value.copy(showDialog = true, candidateId = candidateId)
+			val existingCandidate = repository.getCandidateByEmail(email)
+			if (existingCandidate != null) {
+				val candidateId = existingCandidate.id
+				val answers = repository.getAnswersByCandidate(candidateId).first()
+
+				val hasSavedAnswers = answers.isNotEmpty() && answers.any { it.answerText.isNotEmpty() }
+				val hasCompletedTest = answers.size >= totalQuestions && answers.all { it.answerText.isNotEmpty() }
+
+				if (hasCompletedTest) {
+					// Show toast message and exit (no dialog)
+					_toastMessage.value = "You have already completed the test." // Update state
+					return@launch
+				}
+
+				if (hasSavedAnswers) {
+					candidateUiState.update { it.copy(showDialog = true, candidateId = candidateId) }
 				} else {
 					onNavigate(candidateId, false)
 				}
-			} ?: run {
-				val candidateId = repository.insertCandidate(Candidate(name=name, emailAddress = email))
+
+			} else {
+				// Ensure new candidate ID is properly stored
+				val newCandidate = Candidate(name = name, emailAddress = email)
+				val candidateId = repository.insertCandidate(newCandidate)
+
 				dataStore.writeMultipleToDataStore(
 					DataStoreValue.StringValue(DataStoreManager.CANDIDATE_NAME, name),
 					DataStoreValue.StringValue(DataStoreManager.CANDIDATE_EMAIL, email)
 				)
+
 				onNavigate(candidateId, false)
 			}
 		}
@@ -80,5 +102,9 @@ class CandidateViewModel @Inject constructor (
 			repository.deleteAnswersForCandidate(candidateUiState.value.candidateId ?: return@launch)
 			candidateUiState.value = candidateUiState.value.copy(showDialog = false)
 		}
+	}
+
+	fun clearToastMessage() {
+		_toastMessage.value = null // Reset the toast message
 	}
 }

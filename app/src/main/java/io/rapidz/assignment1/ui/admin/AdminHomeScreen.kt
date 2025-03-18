@@ -4,172 +4,124 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.input.pointer.pointerInput
 import io.rapidz.assignment1.*
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
+import io.rapidz.assignment1.R
 import io.rapidz.assignment1.ui.*
+import io.rapidz.assignment1.utils.Constants
+import io.rapidz.assignment1.viewmodel.AdminViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun AdminHomeScreen(navController : NavController ?= LocalNavController.current) {
 
-//	val context = LocalContext.current
-//	val database = remember { AppDatabase.getDatabase(context) }
-//
-//	val candidateRepository = remember { CandidateRepository(database.candidateDao()) }
-//	val viewModel: CandidateViewModel = viewModel(factory = CandidateViewModelFactory(candidateRepository))
-//	var candidates by remember { mutableStateOf<List<Candidate>>(emptyList()) }
-//
-//	val candidateDataStoreViewModel: CandidateDataStoreViewModel = viewModel(
-//		factory = CandidateDataStoreViewModelFactory(context)
-//	)
-//
-//	val answerRepository = remember { TestRepository(database.answerDao()) }
-//	val answerViewModel: TestViewModel = viewModel(factory = TestViewModelFactory(answerRepository))
-//	var totalScore by remember { mutableStateOf("?") }
-//
-//	var showGif by remember { mutableStateOf(true) }
-//	var displayedCandidates by remember { mutableStateOf<List<Candidate>>(emptyList()) }
-//	var searchQuery by remember { mutableStateOf("") }
-//
-//	val savedTimeLimit by candidateDataStoreViewModel.testTimeLimit.collectAsState(initial = 0)
-//	var testTimeLimit by remember { mutableStateOf(savedTimeLimit) }
-//
-//	val focusManager = LocalFocusManager.current
-//	val keyboardController = LocalSoftwareKeyboardController.current
-//
-//	val timeLimit = stringResource(id = R.string.time_limit_admin)
-//
-//	LaunchedEffect(Unit) {
-//		delay(2000)
-//		showGif = false
-//
-//		viewModel.getAllCandidates { fetchedCandidates ->
-//			candidates = fetchedCandidates
-//			displayedCandidates = fetchedCandidates
-//
-//			val scores = fetchedCandidates.map { candidate ->
-//				answerViewModel.getCandidateScore(candidate.id)
-//			}
-//
-//			totalScore = if (scores.contains("?")) {
-//				"?"
-//			} else {
-//				scores.filterIsInstance<Int>().sum().toString()
-//			}
-//		}
-//	}
-//
-//	LaunchedEffect(savedTimeLimit) {
-//		if (testTimeLimit != savedTimeLimit) {
-//			testTimeLimit = savedTimeLimit
-//		}
-//	}
-//
-//	LaunchedEffect(testTimeLimit) {
-//		snapshotFlow { testTimeLimit }
-//			.collect { newTimeLimit ->
-//				candidateDataStoreViewModel.saveTestTimeLimit(context, newTimeLimit)
-//			}
-//	}
-//
-//	LaunchedEffect(searchQuery) {
-//		if (searchQuery.isNotEmpty()) {
-//			delay(2000)
-//			displayedCandidates = candidates.filter { candidate ->
-//				candidate.name.contains(searchQuery, ignoreCase = true)
-//			}
-//		} else {
-//			displayedCandidates = candidates
-//		}
-//	}
-//
-//	AdminTheme {
-//		Column(
-//			modifier = Modifier
-//				.fillMaxSize()
-//				.background(color = Color.White)
-//				.padding(all = spacing_20)
-//				.pointerInput(Unit) {
-//					detectTapGestures(onTap = {
-//						keyboardController?.hide()
-//						focusManager.clearFocus()
-//					})
-//				},
-//			verticalArrangement = Arrangement.spacedBy(spacing_20),
-//			horizontalAlignment = Alignment.Start
-//		){
-//			TextLabel(
-//				text = R.string.admin_home,
-//				typographyStyle = AppTypography.titleLarge
-//			)
-//
-//			InputTextFieldAdmin(
-//				value = testTimeLimit,
-//				onValueChange = { newValue ->
-//					testTimeLimit = newValue
-//				},
-//				label = timeLimit,
-//				placeholder = stringResource(id = R.string.defaultTime)
-//			)
-//
-//			TextLabel(
-//				text = R.string.taken_tests,
-//				modifier = Modifier.padding(top = spacing_20)
-//			)
-//
-//			if (showGif) {
-//				GifImage(context, URL)
-//			} else {
-//				InputTextField(
-//					value = searchQuery,
-//					onValueChange = { newQuery ->
-//						searchQuery = newQuery
-//					},
-//					placeholder = stringResource(id = R.string.search)
-//				)
-//
-//				TableHeader(
-//					headers = listOf("Time", "Name", "Score"),
-//					weights = listOf(1f, 2f, 1f)
-//				)
-//
-//				LazyColumn(
-//					modifier = Modifier
-//						.fillMaxWidth(),
-//					verticalArrangement = Arrangement.spacedBy(spacing_8)
-//				) {
-//					items(displayedCandidates) { candidate ->
-//						val candidateScore = answerViewModel.getCandidateScore(candidate.id)
-//
-//						val totalTimeTaken by answerViewModel.getTotalTimeTaken(candidate.id).collectAsState()
-//						val formattedTimer = formatSecondsToTime(totalTimeTaken)
-//
-//						TableRow(
-//							time = formattedTimer,
-//							name = candidate.name,
-//							score = candidateScore,
-//							onClick = {
-//								navController?.navigate("AdminTest/${candidate.id}")
-//							}
-//						)
-//					}
-//				}
-//			}
-//		}
-//	}
+	val context = LocalContext.current
+	val viewModel : AdminViewModel = hiltViewModel()
+	val candidatesWithScores by viewModel.candidatesWithScores.collectAsState()
+	val isGifVisible by viewModel.isGifVisible.collectAsState()
+	val searchQuery by viewModel.searchQuery.collectAsState()
+	val updatedSearchQuery by rememberUpdatedState(searchQuery)
+
+	val focusManager = LocalFocusManager.current
+	val keyboardController = LocalSoftwareKeyboardController.current
+
+	LaunchedEffect(updatedSearchQuery) {
+		delay(2000)
+		viewModel.searchCandidates()
+	}
+
+	AdminTheme {
+		Column(
+			modifier = Modifier
+				.fillMaxSize()
+				.background(color = Color.White)
+				.padding(all = spacing_20)
+				.pointerInput(Unit) {
+					detectTapGestures(onTap = {
+						keyboardController?.hide()
+						focusManager.clearFocus()
+					})
+				},
+			verticalArrangement = Arrangement.spacedBy(spacing_20),
+			horizontalAlignment = Alignment.Start
+		){
+			TextLabel(
+				text = R.string.admin_home,
+				typographyStyle = AppTypography.titleLarge
+			)
+
+			InputTextFieldTime(
+				value = 0,
+				onValueChange = {},
+				label = stringResource(id = R.string.time_limit_admin),
+				placeholder = stringResource(id = R.string.defaultTime)
+			)
+
+			TextLabel(
+				text = R.string.taken_tests,
+				modifier = Modifier.padding(top = spacing_20)
+			)
+
+			if(isGifVisible){
+				GifImage(context, Constants.URL.URL_GIF)
+			} else {
+				InputTextSearch(
+					value = searchQuery,
+					onValueChange = { newQuery -> viewModel.searchQueryChanged(newQuery) },
+					label = stringResource(R.string.search),
+					placeholder = stringResource(id = R.string.search_name)
+				)
+
+				TableHeader(
+					headers = listOf("Time", "Name", "Score"),
+					weights = listOf(1f, 2f, 1f)
+				)
+
+				LazyColumn(
+					modifier = Modifier.fillMaxWidth(),
+					verticalArrangement = Arrangement.spacedBy(spacing_8)
+				) {
+					items(candidatesWithScores) { candidateWithScore ->
+						TableRow(
+							time = "N/A",
+							name = candidateWithScore.candidate.name,
+							score = candidateWithScore.totalScore.toString(),
+							onClick = {
+								// navigate to the AdminTestScreen
+								navController?.navigate("${Route.ADMIN_TEST}/${candidateWithScore.candidate.id}")
+							}
+						)
+					}
+				}
+			}
+		}
+	}
 }
 
 @Composable

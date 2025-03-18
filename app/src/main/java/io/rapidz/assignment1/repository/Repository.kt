@@ -4,6 +4,7 @@ import androidx.room.Update
 import io.rapidz.assignment1.dao.AppDao
 import io.rapidz.assignment1.data.Answer
 import io.rapidz.assignment1.data.Candidate
+import io.rapidz.assignment1.data.CandidateWithScore
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

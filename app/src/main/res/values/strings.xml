@@ -17,6 +17,7 @@
 	<string name="time_limit_admin">Test Time Limit (minutes)</string>
 	<string name="taken_tests">Taken Tests</string>
 	<string name="search">Search</string>
+	<string name="search_name">Name</string>
 	<string name="admin_taken_tests">Admin Taken Tests</string>
 	<string name="defaultTime">0</string>
 

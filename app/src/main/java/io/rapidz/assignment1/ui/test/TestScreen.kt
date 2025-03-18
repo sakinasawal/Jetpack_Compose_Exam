@@ -1,7 +1,7 @@
 package io.rapidz.assignment1.ui.test
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,10 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -33,12 +30,14 @@ import io.rapidz.assignment1.R
 import io.rapidz.assignment1.Screen
 import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
+import io.rapidz.assignment1.data.Role
 import io.rapidz.assignment1.navigate
 import io.rapidz.assignment1.ui.spacing_1
 import io.rapidz.assignment1.ui.spacing_24
 import io.rapidz.assignment1.ui.spacing_4
 import io.rapidz.assignment1.ui.spacing_8
 import io.rapidz.assignment1.ui.*
+import io.rapidz.assignment1.utils.Constants
 import io.rapidz.assignment1.viewmodel.NavigationDirection
 import io.rapidz.assignment1.viewmodel.TestViewModel
 
@@ -62,10 +61,17 @@ fun TestScreen(
 		{ content -> UncompletedQuestionTheme(content) }
 	}
 
+	BackHandler {
+		viewModel.checkAllQuestions()
+	}
+
 	themeWrapper{
 		BottomAppBar(
+			role = Role(Constants.Role.ROLE_CANDIDATE),
+			onLeftDoubleArrowClick = { viewModel.goToFirstQuestion()},
 			onLeftArrowClick = { viewModel.goToPreviousQuestion() },
 			onRightArrowClick = { viewModel.goToNextQuestion() },
+			onRightDoubleArrowClick = {viewModel.goToLastQuestion() },
 			onFloatingButtonClick = { viewModel.checkAllQuestions() }
 		){
 			Column(
@@ -157,7 +163,7 @@ fun TestScreen(
  */
 
 @Composable
-fun RadioButtonAnswer(options: List<String>, currentAnswer: String, onAnswerChange: (String) -> Unit){
+fun RadioButtonAnswer(options: List<String>, currentAnswer: String, onAnswerChange: ((String) -> Unit)? = null){
 	var selectedOption by remember(currentAnswer) { mutableStateOf(currentAnswer) }
 	Column {
 		options.forEach{ option ->
@@ -169,7 +175,7 @@ fun RadioButtonAnswer(options: List<String>, currentAnswer: String, onAnswerChan
 						selected = selectedOption == option,
 						onClick = {
 							selectedOption = option
-							onAnswerChange(option)
+							onAnswerChange?.let { it(option) }
 						}
 					),
 				verticalAlignment = Alignment.CenterVertically
@@ -188,7 +194,7 @@ fun RadioButtonAnswer(options: List<String>, currentAnswer: String, onAnswerChan
 }
 
 @Composable
-fun CheckBoxAnswer(options: List<String>, currentAnswer: String, onAnswerChange: (String) -> Unit){
+fun CheckBoxAnswer(options: List<String>, currentAnswer: String, onAnswerChange: ((String) -> Unit)? = null){
 	val initialCheckedStates = remember(currentAnswer) {
 		options.map { currentAnswer.split(", ").contains(it) }
 	}
@@ -204,7 +210,7 @@ fun CheckBoxAnswer(options: List<String>, currentAnswer: String, onAnswerChange:
 					onCheckedChange = { isChecked ->
 						checkedStates[index] = isChecked
 						val selectedOptions = options.filterIndexed { i, _ -> checkedStates[i] }
-						onAnswerChange(selectedOptions.joinToString(", "))
+						onAnswerChange?.let { it(selectedOptions.joinToString(", ")) }
 					}
 				)
 				Text(text = option)
@@ -224,9 +230,6 @@ fun Textarea(
 	val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 	val dynamicHeight = screenHeight * 0.65f
 
-	val focusManager = LocalFocusManager.current
-	val keyboardController = LocalSoftwareKeyboardController.current
-
 	TextField(
 		value = text,
 		onValueChange = {
@@ -239,13 +242,7 @@ fun Textarea(
 			.fillMaxWidth()
 			.heightIn(min = dynamicHeight)
 			.padding(spacing_4)
-			.border(width = spacing_1, color = Color.Black)
-			.pointerInput(Unit) {
-				detectTapGestures(onTap = {
-					keyboardController?.hide()
-					focusManager.clearFocus()
-				})
-			},
+			.border(width = spacing_1, color = Color.Black),
 		readOnly = readOnly
 	)
 }

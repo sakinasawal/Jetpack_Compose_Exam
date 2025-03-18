@@ -39,8 +39,7 @@ sealed class Screen(val route: String) {
 	data object CandidateRegister : Screen(Route.CANDIDATE_REGISTER)
 
 	data object Test : Screen("${Route.TEST}/{${Key.CANDIDATE_ID}}?${Key.USE_PREVIOUS_DATA}={${Key.USE_PREVIOUS_DATA}}"){
-		fun createRoute(candidateId: Long, usePreviousData: Boolean) =
-			"$route/$candidateId?${Key.USE_PREVIOUS_DATA}=$usePreviousData"
+		fun createRoute(candidateId: Long, usePreviousData: Boolean) = "$route/$candidateId?${Key.USE_PREVIOUS_DATA}=$usePreviousData"
 	}
 }
 
@@ -64,7 +63,7 @@ fun NavGraphBuilder.composable(screen: Screen) {
 			is Screen.AdminTest -> {
 				val candidateId = entry.arguments?.getLong(Key.CANDIDATE_ID)
 				if (candidateId != null) {
-					AdminTestScreen(candidateId = candidateId)
+					AdminTestScreen()
 				} else {
 					error("Candidate ID is required.")
 				}
@@ -72,15 +71,7 @@ fun NavGraphBuilder.composable(screen: Screen) {
 
 			is Screen.CandidateRegister -> CandidateRegisterScreen()
 
-			is Screen.Test -> {
-				val candidateId = entry.arguments?.getLong(Key.CANDIDATE_ID)
-				val usePreviousData = entry.arguments?.getBoolean(Key.USE_PREVIOUS_DATA) ?: false
-				if (candidateId != null) {
-					TestScreen()
-				} else {
-					error("Candidate ID is required.")
-				}
-			}
+			is Screen.Test -> TestScreen()
 		}
 	}
 }

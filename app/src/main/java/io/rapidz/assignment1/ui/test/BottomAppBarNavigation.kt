@@ -13,65 +13,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import io.rapidz.assignment1.data.Role
 import io.rapidz.assignment1.ui.*
+import io.rapidz.assignment1.utils.Constants
 
 @Preview
 @Composable
 fun BottomAppBarPreview() {
 	DefaultTheme {
-		BottomAppBar()
-	}
-}
-
-@Composable
-fun BottomAppBar(
-	onLeftDoubleArrowClick : (() -> Unit)? = null,
-	onLeftArrowClick : (() -> Unit)? = null,
-	onRightArrowClick : (() -> Unit)? = null,
-	onRightDoubleArrowClick : (() -> Unit)? = null,
-	onFloatingButtonClick : (() -> Unit)? = null,
-	content: @Composable () -> Unit? = {}
-) {
-	Scaffold(
-		bottomBar = {
-			BottomAppBar(
-				actions = {
-					IconButton(onClick = { onLeftDoubleArrowClick!!()}) {
-						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
-					}
-					IconButton(onClick = { onLeftArrowClick!!()}) {
-						Icon(Icons.Default.ChevronLeft, contentDescription = null)
-					}
-					IconButton(onClick = { onRightArrowClick!!()}) {
-						Icon(Icons.Default.ChevronRight, contentDescription = null)
-					}
-					IconButton(onClick = { onRightDoubleArrowClick!!()}) {
-						Icon(Icons.Default.KeyboardDoubleArrowRight, null)
-					}
-					Row{
-						Spacer(modifier = Modifier.width(spacing_20))
-						Text(
-							text = "00:00",
-							style = MaterialTheme.typography.bodyMedium
-						)
-					}
-				},
-				floatingActionButton = {
-					FloatingActionButton(
-						onClick = { onFloatingButtonClick!!() },
-						elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-					) {
-						Icon(Icons.Default.DoneAll, null)
-					}
-				}
-			)
-		},
-	) { innerPadding ->
-		Box(
-			modifier = Modifier
-				.padding(innerPadding)
-				.verticalScroll(rememberScrollState())
-		)
-		content()
+		BottomAppBar(role = Role(Constants.Role.ROLE_CANDIDATE))
 	}
 }
 
@@ -79,15 +27,18 @@ fun BottomAppBar(
 @Composable
 fun BottomAppBarAdminPreview() {
 	AdminTheme {
-		BottomAppBarAdmin()
+		BottomAppBar(role = Role(Constants.Role.ROLE_ADMIN),
+			showDoneIcon = true,
+			showCloseIcon = true,
+			showFloatBtn = false)
 	}
 }
 
 @Composable
-fun BottomAppBarAdmin(
-	timer: String? = "",
-	showDoneIcon: Boolean = true,
-	showCloseIcon: Boolean = true,
+fun BottomAppBar(
+	role : Role,
+	showDoneIcon: Boolean? = false,
+	showCloseIcon: Boolean? = false,
 	doneIconColor: Color = Color(0xFF018786),
 	closeIcon: ImageVector = Icons.Default.Close,
 	closeIconColor: Color = md_theme_admin_error,
@@ -97,20 +48,24 @@ fun BottomAppBarAdmin(
 	onLeftArrowClick : () -> Unit? = {},
 	onRightArrowClick : () -> Unit? = {},
 	onRightDoubleArrowClick : () -> Unit? = {},
+	showFloatBtn : Boolean? = true,
+	onFloatingButtonClick : (() -> Unit)? = null,
 	content: @Composable () -> Unit? = {}
 ) {
 	Scaffold(
 		bottomBar = {
 			BottomAppBar(
 				actions = {
-					if (showDoneIcon) {
-						IconButton(onClick = { onDoneClick() }) {
-							Icon(Icons.Default.Done, contentDescription = null, tint = doneIconColor)
+					if (role.isAdmin()){
+						if (showDoneIcon == true) {
+							IconButton(onClick = { onDoneClick() }) {
+								Icon(Icons.Default.Done, contentDescription = null, tint = doneIconColor)
+							}
 						}
-					}
-					if (showCloseIcon) {
-						IconButton(onClick = { onCloseClick() }) {
-							Icon(closeIcon, contentDescription = null, tint = closeIconColor)
+						if (showCloseIcon == true) {
+							IconButton(onClick = { onCloseClick() }) {
+								Icon(closeIcon, contentDescription = null, tint = closeIconColor)
+							}
 						}
 					}
 					IconButton(onClick = { onLeftDoubleArrowClick()}) {
@@ -128,12 +83,25 @@ fun BottomAppBarAdmin(
 					Row{
 						Spacer(modifier = Modifier.width(spacing_20))
 						Text(
-							text = timer!!,
-							style = MaterialTheme.typography.bodyLarge
+							text = "00:00",
+							style = if (role.isCandidate()){
+								MaterialTheme.typography.bodyMedium
+							} else {
+								MaterialTheme.typography.bodyLarge
+							}
 						)
-
 					}
 				},
+				floatingActionButton = {
+					if (role.isCandidate() && showFloatBtn == true) {
+						FloatingActionButton(
+							onClick = { onFloatingButtonClick!!() },
+							elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+						) {
+							Icon(Icons.Default.DoneAll, null)
+						}
+					}
+				}
 			)
 		},
 	) { innerPadding ->

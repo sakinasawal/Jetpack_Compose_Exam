@@ -111,7 +111,7 @@ fun AdminHomeScreen(navController : NavController ?= LocalNavController.current)
 						TableRow(
 							time = "N/A",
 							name = candidateWithScore.candidate.name,
-							score = candidateWithScore.totalScore.toString(),
+							score = candidateWithScore.totalScore?.toString() ?: "?",
 							onClick = {
 								// navigate to the AdminTestScreen
 								navController?.navigate("${Route.ADMIN_TEST}/${candidateWithScore.candidate.id}")

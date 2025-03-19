@@ -3,11 +3,19 @@ package io.rapidz.assignment1.ui
 import android.annotation.SuppressLint
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -19,11 +27,17 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import io.rapidz.assignment1.R
+import io.rapidz.assignment1.data.Role
+import io.rapidz.assignment1.utils.Constants
 import java.util.regex.Pattern
+
+// region Lable & InputText ===============================================
 
 @Composable
 @SuppressLint("ModifierParameter")
@@ -131,6 +145,10 @@ fun InputTextFieldTime(
 	)
 }
 
+// end region
+
+// region Button =============================================
+
 @Composable
 fun AppButton(
 	@StringRes textRes: Int,
@@ -153,6 +171,10 @@ fun AppButton(
 		}
 	}
 }
+
+// end region
+
+// region Dialog ==================================================
 
 @Composable
 fun GeneralAlertDialog(
@@ -231,6 +253,111 @@ fun EndTestAlertDialog(
 	)
 }
 
+// end region
+
+// region Bottom Nav Bar ==============================================
+
+@Preview
+@Composable
+fun BottomAppBarPreview() {
+	DefaultTheme {
+		BottomAppBar(role = Role(Constants.Role.ROLE_CANDIDATE),
+			showFloatBtn = true)
+	}
+}
+
+@Preview
+@Composable
+fun BottomAppBarAdminPreview() {
+	AdminTheme {
+		BottomAppBar(role = Role(Constants.Role.ROLE_ADMIN),
+			showDoneIcon = true,
+			showCloseIcon = true)
+	}
+}
+
+@Composable
+fun BottomAppBar(
+	role : Role,
+	showDoneIcon: Boolean? = false,
+	showCloseIcon: Boolean? = false,
+	doneIconColor: Color = Color(0xFF018786),
+	closeIcon: ImageVector = Icons.Default.Close,
+	closeIconColor: Color = md_theme_admin_error,
+	onDoneClick: (() -> Unit)? = null,
+	onCloseClick: (() -> Unit)? = null,
+	onLeftDoubleArrowClick : () -> Unit? = {},
+	onLeftArrowClick : () -> Unit? = {},
+	onRightArrowClick : () -> Unit? = {},
+	onRightDoubleArrowClick : () -> Unit? = {},
+	showFloatBtn : Boolean? = false,
+	onFloatingButtonClick : (() -> Unit)? = null,
+	content: @Composable () -> Unit = {}
+) {
+	Scaffold(
+		bottomBar = {
+			BottomAppBar(
+				actions = {
+					if (role.isAdmin()){
+						if (showDoneIcon == true) {
+							IconButton(onClick = { onDoneClick?.invoke()}) {
+								Icon(Icons.Default.Done, contentDescription = null, tint = doneIconColor)
+							}
+						}
+						if (showCloseIcon == true) {
+							IconButton(onClick = { onCloseClick?.invoke() }) {
+								Icon(closeIcon, contentDescription = null, tint = closeIconColor)
+							}
+						}
+					}
+					IconButton(onClick = { onLeftDoubleArrowClick() }) {
+						Icon(Icons.Default.KeyboardDoubleArrowLeft, contentDescription = null)
+					}
+					IconButton(onClick = { onLeftArrowClick() }) {
+						Icon(Icons.Default.ChevronLeft, contentDescription = null)
+					}
+					IconButton(onClick = { onRightArrowClick() }) {
+						Icon(Icons.Default.ChevronRight, contentDescription = null)
+					}
+					IconButton(onClick = { onRightDoubleArrowClick() }) {
+						Icon(Icons.Default.KeyboardDoubleArrowRight, null)
+					}
+					Row{
+						Spacer(modifier = Modifier.width(spacing_20))
+						Text(
+							text = "00:00",
+							style = if (role.isCandidate()){
+								MaterialTheme.typography.bodyMedium
+							} else {
+								MaterialTheme.typography.bodyLarge
+							}
+						)
+					}
+				},
+				floatingActionButton = {
+					if (role.isCandidate() && showFloatBtn == true) {
+						FloatingActionButton(
+							onClick = { onFloatingButtonClick?.invoke() },
+							elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+						) {
+							Icon(Icons.Default.DoneAll, null)
+						}
+					}
+				}
+			)
+		},
+	) { innerPadding ->
+		Box(
+			modifier = Modifier
+				.padding(innerPadding)
+				.verticalScroll(rememberScrollState())
+		)
+		content()
+	}
+}
+
+// end region
+
 @SuppressLint("DefaultLocale")
 fun formatSecondsToTime(seconds: Int): String {
 	val minutes = seconds / 60
@@ -238,9 +365,12 @@ fun formatSecondsToTime(seconds: Int): String {
 	return String.format("%02dm %02ds", minutes, remainingSeconds)
 }
 
+// region Regex email ================================================
+
 fun isValidEmail(email : String) : Boolean {
 	val emailRegex = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})"
 	val pattern = Pattern.compile(emailRegex)
 	return pattern.matcher(email).matches()
 }
 
+// end region

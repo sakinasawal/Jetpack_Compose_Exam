@@ -50,7 +50,7 @@ fun TestScreen(
 	val dialogState by viewModel.dialogState.collectAsState()
 
 	val currentQuestion = uiState.questions.getOrNull(uiState.currentQuestionIndex)
-	val selectedAnswer = currentQuestion?.let { uiState.answers[it.id]?.answerText.orEmpty() } ?: ""
+	val selectedAnswer = currentQuestion?.let { uiState.answers[it.id]?.answerText ?: "" } ?: ""
 
 	var isShowEndTestDialog by remember { mutableStateOf(false) }
 	val isCompleted = selectedAnswer.isNotEmpty()
@@ -68,6 +68,7 @@ fun TestScreen(
 	themeWrapper{
 		BottomAppBar(
 			role = Role(Constants.Role.ROLE_CANDIDATE),
+			showFloatBtn = true,
 			onLeftDoubleArrowClick = { viewModel.goToFirstQuestion()},
 			onLeftArrowClick = { viewModel.goToPreviousQuestion() },
 			onRightArrowClick = { viewModel.goToNextQuestion() },
@@ -97,18 +98,19 @@ fun TestScreen(
 						QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(
 							options = question.options,
 							currentAnswer = selectedAnswer,
-							onAnswerChange = {viewModel.saveAnswer(question.id, it)}
+							onAnswerChange = { viewModel.saveAnswerTemporarily(question.id, it) }
 						)
 
 						QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(
 							options = question.options,
 							currentAnswer = selectedAnswer,
-							onAnswerChange = { viewModel.saveAnswer(question.id, it) }
+							onAnswerChange = { selectedOptions ->
+								viewModel.saveAnswerTemporarily(question.id, selectedOptions) }
 						)
 
 						QuestionType.FREE_TEXT -> Textarea(
 							initialText = selectedAnswer,
-							onAnswerChange = { viewModel.saveAnswer(question.id, it) }
+							onAnswerChange = { viewModel.saveAnswerTemporarily(question.id, it) }
 						)
 					}
 				}
@@ -124,6 +126,8 @@ fun TestScreen(
 				when(viewModel.lastNavigation){
 					NavigationDirection.NEXT -> viewModel.goToNextQuestion(true)
 					NavigationDirection.PREVIOUS -> viewModel.goToPreviousQuestion(true)
+					NavigationDirection.FIRST -> viewModel.goToFirstQuestion(true)
+					NavigationDirection.LAST -> viewModel.goToLastQuestion(true)
 					else -> {}
 				}
 			},
@@ -196,20 +200,27 @@ fun RadioButtonAnswer(options: List<String>, currentAnswer: String, onAnswerChan
 @Composable
 fun CheckBoxAnswer(options: List<String>, currentAnswer: String, onAnswerChange: ((String) -> Unit)? = null){
 	val initialCheckedStates = remember(currentAnswer) {
-		options.map { currentAnswer.split(", ").contains(it) }
+		currentAnswer.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
 	}
-	val checkedStates = remember { mutableStateListOf(*initialCheckedStates.toTypedArray()) }
+	val checkedStates = remember { mutableStateMapOf<String, Boolean>() }
+
+	LaunchedEffect(currentAnswer) {
+		checkedStates.clear()
+		options.forEach { option ->
+			checkedStates[option] = initialCheckedStates.contains(option)
+		}
+	}
 
 	Column(
 		modifier = Modifier.fillMaxSize()
 	) {
-		options.forEachIndexed{ index, option ->
+		options.forEach { option ->
 			Row(verticalAlignment = Alignment.CenterVertically) {
 				Checkbox(
-					checked = checkedStates[index],
+					checked = checkedStates[option] ?: false,
 					onCheckedChange = { isChecked ->
-						checkedStates[index] = isChecked
-						val selectedOptions = options.filterIndexed { i, _ -> checkedStates[i] }
+						checkedStates[option] = isChecked
+						val selectedOptions = checkedStates.filter { it.value }.keys
 						onAnswerChange?.let { it(selectedOptions.joinToString(", ")) }
 					}
 				)
@@ -231,7 +242,7 @@ fun Textarea(
 	val dynamicHeight = screenHeight * 0.65f
 
 	TextField(
-		value = text,
+		value = initialText,
 		onValueChange = {
 			if (!readOnly){
 				text = it

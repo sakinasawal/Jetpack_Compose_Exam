@@ -37,6 +37,8 @@ class TestViewModel @Inject constructor (
 
 	var lastNavigation: NavigationDirection? = null
 
+	private val temporarySavedAnswer = mutableMapOf<Int, String>()
+
 	init {
 		loadQuestions()
 		if (usePreviousData) {
@@ -60,7 +62,20 @@ class TestViewModel @Inject constructor (
 		}
 	}
 
-	fun saveAnswer(questionId: Int, answerText: String) {
+	fun saveAnswerTemporarily(questionId: Int, answerText: String) {
+		// Store in temporary map without saving to Room DB
+		temporarySavedAnswer[questionId] = answerText
+
+		// Update UI state for immediate UI feedback
+		testUiState.update { currentState ->
+			val updatedAnswers = currentState.answers.toMutableMap().apply {
+				put(questionId, Answer(questionId = questionId, candidateId = candidateId, answerText = answerText, score = null))
+			}
+			currentState.copy(answers = updatedAnswers)
+		}
+	}
+
+	private fun saveAnswer(questionId: Int, answerText: String) {
 		viewModelScope.launch {
 			val answer = repository.getAnswersByCandidate(candidateId)
 			val existingAnswer = answer.first().find { it.questionId == questionId }
@@ -82,14 +97,17 @@ class TestViewModel @Inject constructor (
 				existingAnswer?.let {
 					repository.updateAnswer(it.copy(answerText = answerText, score = score))
 				} ?: repository.saveAnswer(answerScore)
+			}
+		}
+	}
 
-				// Update the UI state
-				testUiState.update { currentState ->
-					val updatedAnswers = currentState.answers.toMutableMap().apply {
-						put(questionId, answerScore)
-					}
-					currentState.copy(answers = updatedAnswers)
-				}
+	private fun saveAnswerBeforeNavigate(){
+		val currentIndex = uiState.value.currentQuestionIndex
+		val currentQuestion = uiState.value.questions.getOrNull(currentIndex)
+		currentQuestion?.let { question ->
+			temporarySavedAnswer[question.id]?.let { answerText ->
+				saveAnswer(question.id, answerText)
+				temporarySavedAnswer.remove(question.id) // Clear temporary storage after saving
 			}
 		}
 	}
@@ -98,6 +116,7 @@ class TestViewModel @Inject constructor (
 
 	fun goToNextQuestion(onProceed : Boolean = false) {
 		if (onProceed || checkCurrentQuestionCompletion()){
+			saveAnswerBeforeNavigate()
 			val currentIndex = testUiState.value.currentQuestionIndex
 			if (currentIndex < testUiState.value.questions.size - 1){
 				testUiState.value = testUiState.value.copy(currentQuestionIndex = currentIndex + 1)
@@ -110,6 +129,7 @@ class TestViewModel @Inject constructor (
 
 	fun goToPreviousQuestion(onProceed : Boolean = false) {
 		if (onProceed || checkCurrentQuestionCompletion()){
+			saveAnswerBeforeNavigate()
 			val currentIndex = testUiState.value.currentQuestionIndex
 			if (currentIndex > 0){
 				testUiState.value = testUiState.value.copy(currentQuestionIndex = currentIndex - 1)
@@ -120,14 +140,25 @@ class TestViewModel @Inject constructor (
 		}
 	}
 
-	fun goToFirstQuestion() {
-		val firstIndex = 0
-		testUiState.value = testUiState.value.copy(currentQuestionIndex = firstIndex)
+	fun goToFirstQuestion(onProceed : Boolean = false) {
+		if (onProceed || checkCurrentQuestionCompletion()){
+			saveAnswerBeforeNavigate()
+			testUiState.value = testUiState.value.copy(currentQuestionIndex = 0)
+		} else {
+			lastNavigation = NavigationDirection.FIRST
+			dialogUiState.value = DialogType.QUESTION_NOT_COMPLETE
+		}
 	}
 
-	fun goToLastQuestion() {
-		val lastIndex = testUiState.value.questions.lastIndex
-		testUiState.value = testUiState.value.copy(currentQuestionIndex = lastIndex)
+	fun goToLastQuestion(onProceed : Boolean = false) {
+		if (onProceed || checkCurrentQuestionCompletion()){
+			saveAnswerBeforeNavigate()
+			val lastIndex = testUiState.value.questions.lastIndex
+			testUiState.value = testUiState.value.copy(currentQuestionIndex = lastIndex)
+		} else {
+			lastNavigation = NavigationDirection.LAST
+			dialogUiState.value = DialogType.QUESTION_NOT_COMPLETE
+		}
 	}
 
 	// end region
@@ -168,5 +199,5 @@ class TestViewModel @Inject constructor (
 }
 
 enum class NavigationDirection {
-	NEXT, PREVIOUS
+	NEXT, PREVIOUS, FIRST, LAST
 }

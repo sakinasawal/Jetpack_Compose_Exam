@@ -5,15 +5,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.rapidz.assignment1.viewmodel.AdminViewModel
-import io.rapidz.assignment1.viewmodel.TestViewModel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Text
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Dangerous
@@ -23,11 +19,11 @@ import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.data.Role
 import io.rapidz.assignment1.ui.AdminTheme
 import io.rapidz.assignment1.ui.AppTypography
+import io.rapidz.assignment1.ui.BottomAppBar
 import io.rapidz.assignment1.ui.TextLabelTitle
 import io.rapidz.assignment1.ui.md_theme_admin_error
 import io.rapidz.assignment1.ui.spacing_20
 import io.rapidz.assignment1.ui.spacing_4
-import io.rapidz.assignment1.ui.test.BottomAppBar
 import io.rapidz.assignment1.ui.test.CheckBoxAnswer
 import io.rapidz.assignment1.ui.test.RadioButtonAnswer
 import io.rapidz.assignment1.ui.test.Textarea
@@ -37,20 +33,52 @@ import io.rapidz.assignment1.utils.Constants
 fun AdminTestScreen(viewModel : AdminViewModel = hiltViewModel()) {
 
 	val uiState by viewModel.uiState.collectAsState()
+	val freeTextScoreUi by viewModel.freeTextScores.collectAsState()
+
 	val currentQuestion = uiState.questions.getOrNull(uiState.currentQuestionIndex)
 	val candidateAnswer = currentQuestion?.let { uiState.answers[it.id]?.answerText.orEmpty() }
-	val isCorrectAnswer = currentQuestion?.let { viewModel.isAnswerCorrect(it, candidateAnswer) } == true
-	val isFreeText = currentQuestion?.questionType == QuestionType.FREE_TEXT
+	val questionType = currentQuestion?.questionType
+
+	val isFreeText = questionType == QuestionType.FREE_TEXT
+	val freeTextScore = freeTextScoreUi[currentQuestion?.id]
+	val bothIconShown = isFreeText && freeTextScore == null
+
+	val isCorrectAnswer = when(questionType){
+		QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE -> {
+			currentQuestion.let { viewModel.isAnswerCorrect(it, candidateAnswer) }
+		}
+		QuestionType.FREE_TEXT -> freeTextScore == true
+		else -> false
+	}
 
 	AdminTheme {
 		BottomAppBar(
 			role = Role(Constants.Role.ROLE_ADMIN),
-			showDoneIcon = if(isFreeText) true else isCorrectAnswer,
-			showCloseIcon = if (isFreeText) true else !isCorrectAnswer,
+			showDoneIcon = when{
+				isFreeText && freeTextScore == null -> true
+				isFreeText && freeTextScore == true -> true
+				isFreeText -> false
+				else -> isCorrectAnswer
+			},
+			showCloseIcon = when{
+				isFreeText && freeTextScore == null -> true
+				isFreeText && freeTextScore == false -> true
+				isFreeText -> false
+				else -> !isCorrectAnswer
+			},
 			closeIcon = if (isFreeText) Icons.Default.Close else Icons.Default.Dangerous,
-			closeIconColor = if (isFreeText) Color.Black else md_theme_admin_error,
-			doneIconColor = if (isFreeText) Color.Black else Color(0xFF018786),
-			showFloatBtn = false,
+			closeIconColor = when {
+				bothIconShown -> Color.Black
+				isFreeText && freeTextScore == false -> md_theme_admin_error // Incorrect answer
+				else -> md_theme_admin_error
+			},
+			doneIconColor = when {
+				bothIconShown -> Color.Black
+				isFreeText && freeTextScore == true -> Color(0xFF018786) // Correct answer
+				else -> Color(0xFF018786)
+			},
+			onDoneClick = if (isFreeText) { { currentQuestion?.id?.let { viewModel.scoreFreeText(it, true) } } } else null,
+			onCloseClick = if (isFreeText) { { currentQuestion?.id?.let { viewModel.scoreFreeText(it, false) } } } else null,
 			onLeftDoubleArrowClick = { viewModel.goToFirstQuestion() },
 			onLeftArrowClick = { viewModel.goToPreviousQuestion() },
 			onRightArrowClick = { viewModel.goToNextQuestion() },

@@ -5,12 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rapidz.assignment1.Key
+import io.rapidz.assignment1.data.Answer
 import io.rapidz.assignment1.data.CandidateWithScore
 import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionData
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.data.UiState
 import io.rapidz.assignment1.repository.Repository
+import io.rapidz.assignment1.utils.TimeUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,6 +41,11 @@ class AdminViewModel @Inject constructor (
 	private val adminUiState = MutableStateFlow(UiState())
 	val uiState: StateFlow<UiState> = adminUiState
 
+	private val uiFreeTextScores = MutableStateFlow<Map<Int, Boolean?>>(emptyMap())
+	val freeTextScores: StateFlow<Map<Int, Boolean?>> = uiFreeTextScores
+
+	private val totalQuestions: Int = QuestionData.question.size
+
 	init {
 		loadCandidate()
 		loadQuestionsAndAnswers()
@@ -49,14 +56,15 @@ class AdminViewModel @Inject constructor (
 	private fun loadCandidate(){
 		viewModelScope.launch {
 			val candidates = repository.getAllCandidates()
-			val candidatesWithScores = candidates.map { candidate ->
+			val candidatesWithScores = candidates.mapNotNull { candidate ->
 				val answers = repository.getAnswersByCandidate(candidate.id).first()
-				val totalScore = answers.sumOf { it.score ?: 0 }
-				CandidateWithScore(candidate, totalScore)
+				if (answers.size != totalQuestions) return@mapNotNull null
+				val hasNullScore = answers.any { it.score == null }
+				val totalScore = if(hasNullScore) null else answers.sumOf { it.score ?: 0 }
+				totalScore?.let { CandidateWithScore(candidate, it) }
 			}
-
-			delay(2000)
 			listCandidatesWithScores.value = candidatesWithScores
+			delay(2000)
 			isGifShows.value = false
 		}
 	}
@@ -69,12 +77,14 @@ class AdminViewModel @Inject constructor (
 		viewModelScope.launch {
 			val query = searchQueryName.value.lowercase().trim()
 			val allCandidates = repository.getAllCandidates()
-			val filteredCandidates = allCandidates.filter { candidate ->
-				candidate.name.lowercase().contains(query)
-			}.map { candidate ->
-				val answers = repository.getAnswersByCandidate(candidate.id).first()
-				val totalScore = answers.sumOf { it.score ?: 0 }
-				CandidateWithScore(candidate, totalScore)
+
+			val filteredCandidates = allCandidates.mapNotNull { candidate ->
+				val answer = repository.getAnswersByCandidate(candidate.id).first()
+				if (answer.size == totalQuestions && candidate.name.lowercase().contains(query)){
+					val totalScore = answer.sumOf { it.score ?: 0 }
+					CandidateWithScore(candidate, totalScore)
+				}
+				else null
 			}
 			listCandidatesWithScores.value = filteredCandidates
 		}
@@ -89,7 +99,11 @@ class AdminViewModel @Inject constructor (
 			val questions = QuestionData.question
 			val answers = repository.getAnswersByCandidate(candidateId).first()
 
-			val answerMap = answers.associateBy { it.questionId }
+			val answerMap = answers.map { it.copy() }.associateBy { it.questionId }
+
+			val freeTextScoreMap = answers
+				.filter { it.questionId in questions.filter { q -> q.questionType == QuestionType.FREE_TEXT }.map { q->q.id } }
+				.associate { it.questionId to (it.score?.let { s -> s > 0 }) }
 
 			adminUiState.update { currentState ->
 				currentState.copy(
@@ -97,6 +111,8 @@ class AdminViewModel @Inject constructor (
 					answers = answerMap
 				)
 			}
+
+			uiFreeTextScores.value = freeTextScoreMap
 		}
 	}
 
@@ -128,6 +144,36 @@ class AdminViewModel @Inject constructor (
 
 	fun goToLastQuestion() {
 		adminUiState.update { it.copy(currentQuestionIndex = it.questions.lastIndex) }
+	}
+
+	fun scoreFreeText(questionId : Int, isCorrect : Boolean){
+		viewModelScope.launch {
+			val answer = repository.getAnswersByCandidate(candidateId)
+			val existingAnswer = answer.first().find { it.questionId == questionId }
+			val question = uiState.value.questions.find { it.id == questionId }
+
+			question?.let {
+				val totalQuestions = uiState.value.questions.size.takeIf { it > 0 } ?: 1
+				val scorePerQuestion = TimeUtils.MAX_SCORE / totalQuestions
+
+				val score = if (isCorrect) scorePerQuestion else 0
+
+				val updatedAnswer = Answer(questionId = questionId, candidateId = candidateId, answerText = existingAnswer?.answerText?:"", score = score)
+
+				existingAnswer?.let {
+					repository.updateAnswer(it.copy(score = score))
+				} ?: repository.saveAnswer(updatedAnswer)
+
+				adminUiState.update { currentState ->
+					val updatedAnswers = currentState.answers.toMutableMap().apply {
+						put(questionId, updatedAnswer)
+					}
+					currentState.copy(answers = updatedAnswers)
+				}
+
+				uiFreeTextScores.update { it + (questionId to isCorrect) }
+			}
+		}
 	}
 
 	// end region

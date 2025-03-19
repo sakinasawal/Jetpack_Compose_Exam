@@ -13,10 +13,16 @@ import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.data.UiState
 import io.rapidz.assignment1.repository.Repository
 import io.rapidz.assignment1.utils.TimeUtils
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -33,13 +39,12 @@ class AdminViewModel @Inject constructor (
 	private val isGifShows = MutableStateFlow(true)
 	val isGifVisible: StateFlow<Boolean> = isGifShows
 
-	private val searchQueryName = MutableStateFlow("")
-	val searchQuery: StateFlow<String> = searchQueryName
-
 	private val candidateId: Long = savedStateHandle[Key.CANDIDATE_ID] ?: 0L
 
 	private val adminUiState = MutableStateFlow(UiState())
 	val uiState: StateFlow<UiState> = adminUiState
+
+	private val searchQuery = MutableStateFlow("")
 
 	private val uiFreeTextScores = MutableStateFlow<Map<Int, Boolean?>>(emptyMap())
 	val freeTextScores: StateFlow<Map<Int, Boolean?>> = uiFreeTextScores
@@ -48,12 +53,13 @@ class AdminViewModel @Inject constructor (
 
 	init {
 		loadCandidate()
+		observeSearchQuery()
 		loadQuestionsAndAnswers()
 	}
 
 	// region Admin Dashboard ========================================================================
 
-	private fun loadCandidate(){
+	fun loadCandidate(){
 		viewModelScope.launch {
 			val candidates = repository.getAllCandidates()
 			val candidatesWithScores = candidates.mapNotNull { candidate ->
@@ -69,23 +75,35 @@ class AdminViewModel @Inject constructor (
 		}
 	}
 
-	fun searchQueryChanged(query : String){
-		searchQueryName.value = query
+	fun updateSearchQuery(query: String) {
+		searchQuery.value = query
 	}
 
-	fun searchCandidates(){
+	@OptIn(FlowPreview::class)
+	private fun observeSearchQuery() {
 		viewModelScope.launch {
-			val query = searchQueryName.value.lowercase().trim()
+			searchQuery
+				.debounce(2000) // Wait 2 seconds after last input
+				.distinctUntilChanged() // Ignore duplicate queries
+				.collectLatest { query ->
+					searchCandidates(query)
+				}
+		}
+	}
+
+	private fun searchCandidates(query: String) {
+		viewModelScope.launch {
 			val allCandidates = repository.getAllCandidates()
 
 			val filteredCandidates = allCandidates.mapNotNull { candidate ->
-				val answer = repository.getAnswersByCandidate(candidate.id).first()
-				if (answer.size == totalQuestions && candidate.name.lowercase().contains(query)){
-					val totalScore = answer.sumOf { it.score ?: 0 }
-					CandidateWithScore(candidate, totalScore)
-				}
-				else null
-			}
+				val answers = repository.getAnswersByCandidate(candidate.id).first()
+				if (answers.size != totalQuestions) return@mapNotNull null
+				val hasNullScore = answers.any { it.score == null }
+				val totalScore = if (hasNullScore) null else answers.sumOf { it.score ?: 0 }
+
+				CandidateWithScore(candidate, totalScore)
+			}.filter { it.candidate.name.contains(query, ignoreCase = true) }
+
 			listCandidatesWithScores.value = filteredCandidates
 		}
 	}
@@ -163,6 +181,8 @@ class AdminViewModel @Inject constructor (
 				existingAnswer?.let {
 					repository.updateAnswer(it.copy(score = score))
 				} ?: repository.saveAnswer(updatedAnswer)
+
+				loadCandidate()
 
 				adminUiState.update { currentState ->
 					val updatedAnswers = currentState.answers.toMutableMap().apply {

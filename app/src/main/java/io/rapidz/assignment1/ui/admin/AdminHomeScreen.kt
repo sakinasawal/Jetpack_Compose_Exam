@@ -45,15 +45,13 @@ fun AdminHomeScreen(navController : NavController ?= LocalNavController.current)
 	val viewModel : AdminViewModel = hiltViewModel()
 	val candidatesWithScores by viewModel.candidatesWithScores.collectAsState()
 	val isGifVisible by viewModel.isGifVisible.collectAsState()
-	val searchQuery by viewModel.searchQuery.collectAsState()
-	val updatedSearchQuery by rememberUpdatedState(searchQuery)
+	var searchText by remember { mutableStateOf("") }
 
 	val focusManager = LocalFocusManager.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 
-	LaunchedEffect(updatedSearchQuery) {
-		delay(2000)
-		viewModel.searchCandidates()
+	LaunchedEffect(Unit) {
+		viewModel.loadCandidate()
 	}
 
 	AdminTheme {
@@ -92,8 +90,11 @@ fun AdminHomeScreen(navController : NavController ?= LocalNavController.current)
 				GifImage(context, Constants.URL.URL_GIF)
 			} else {
 				InputTextSearch(
-					value = searchQuery,
-					onValueChange = { newQuery -> viewModel.searchQueryChanged(newQuery) },
+					value = searchText,
+					onValueChange = {
+						searchText = it
+						viewModel.updateSearchQuery(it)
+					},
 					label = stringResource(R.string.search),
 					placeholder = stringResource(id = R.string.search_name)
 				)

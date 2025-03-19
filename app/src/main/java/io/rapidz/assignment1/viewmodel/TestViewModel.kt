@@ -179,6 +179,7 @@ class TestViewModel @Inject constructor (
 	}
 
 	fun checkAllQuestions(){
+		saveAnswerBeforeNavigate()
 		val allAnswered = uiState.value.questions.all { question ->
 			val answer = uiState.value.answers[question.id]?.answerText.orEmpty()
 			isQuestionComplete(question, answer)

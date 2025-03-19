@@ -48,6 +48,7 @@ fun TestScreen(
 ){
 	val uiState by viewModel.uiState.collectAsState()
 	val dialogState by viewModel.dialogState.collectAsState()
+	val timer by viewModel.timer.collectAsState()
 
 	val currentQuestion = uiState.questions.getOrNull(uiState.currentQuestionIndex)
 	val selectedAnswer = currentQuestion?.let { uiState.answers[it.id]?.answerText ?: "" } ?: ""

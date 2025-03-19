@@ -12,6 +12,8 @@ import io.rapidz.assignment1.data.QuestionData
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.data.UiState
 import io.rapidz.assignment1.repository.Repository
+import io.rapidz.assignment1.storage.DataStoreInterface
+import io.rapidz.assignment1.storage.DataStoreManager
 import io.rapidz.assignment1.utils.TimeUtils
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -30,8 +32,12 @@ import javax.inject.Inject
 @HiltViewModel
 class AdminViewModel @Inject constructor (
 	private val repository: Repository,
-	savedStateHandle: SavedStateHandle,
+	private val dataStore: DataStoreInterface,
+	savedStateHandle: SavedStateHandle
 ) : ViewModel(){
+
+	private val setTimeLimit = MutableStateFlow(0)
+	val timeLimit: StateFlow<Int> = setTimeLimit
 
 	private val listCandidatesWithScores = MutableStateFlow<List<CandidateWithScore>>(emptyList())
 	val candidatesWithScores: StateFlow<List<CandidateWithScore>> = listCandidatesWithScores
@@ -52,12 +58,26 @@ class AdminViewModel @Inject constructor (
 	private val totalQuestions: Int = QuestionData.question.size
 
 	init {
+		timerLimit()
 		loadCandidate()
 		observeSearchQuery()
 		loadQuestionsAndAnswers()
 	}
 
 	// region Admin Dashboard ========================================================================
+
+	private fun timerLimit(){
+		viewModelScope.launch {
+			setTimeLimit.value = dataStore.readFromDataStore(DataStoreManager.TIME_LIMIT) ?: 0
+		}
+	}
+
+	fun setTimeLimit(newTimeLimit : Int){
+		setTimeLimit.value = newTimeLimit
+		viewModelScope.launch {
+			dataStore.writeToDataStore(DataStoreManager.TIME_LIMIT, newTimeLimit)
+		}
+	}
 
 	fun loadCandidate(){
 		viewModelScope.launch {

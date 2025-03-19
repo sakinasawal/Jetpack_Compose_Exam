@@ -8,9 +8,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = DataStoreManager.DATA_STORE)
@@ -21,6 +19,7 @@ class DataStoreManager @Inject constructor(@ApplicationContext private val conte
 		const val DATA_STORE = "DATA_STORE"
 		val CANDIDATE_NAME = stringPreferencesKey("CANDIDATE_NAME")
 		val CANDIDATE_EMAIL = stringPreferencesKey("CANDIDATE_EMAIL")
+		val TIME_LIMIT = intPreferencesKey("TIME_LIMIT")
 	}
 
 	override suspend fun <T> writeToDataStore(key: Preferences.Key<T>, value: T) {

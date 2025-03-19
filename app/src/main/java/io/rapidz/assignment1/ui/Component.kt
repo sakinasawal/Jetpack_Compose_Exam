@@ -1,7 +1,10 @@
 package io.rapidz.assignment1.ui
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -28,16 +31,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import coil.compose.AsyncImage
+import coil.decode.GifDecoder
+import coil.request.ImageRequest
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.data.Role
 import io.rapidz.assignment1.utils.Constants
 import java.util.regex.Pattern
 
-// region Lable & InputText ===============================================
+// region Label & InputText ===============================================
 
 @Composable
 @SuppressLint("ModifierParameter")
@@ -128,12 +135,12 @@ fun InputTextFieldTime(
     placeholder: String,
 	modifier : Modifier = Modifier,
 ){
-	var textValue by remember(value) { mutableStateOf(if (value == 0) "" else value.toString()) }
+	var textValue by remember(value) { mutableStateOf(value.toString()) }
 
 	TextField(
 		value = textValue,
 		onValueChange = { newValue ->
-			if (newValue.all { it.isDigit() }) {
+			if (newValue.all { it.isDigit() } || newValue.isEmpty()) {
 				textValue = newValue
 				onValueChange(newValue.toIntOrNull() ?: 0)
 			}
@@ -371,6 +378,72 @@ fun isValidEmail(email : String) : Boolean {
 	val emailRegex = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})"
 	val pattern = Pattern.compile(emailRegex)
 	return pattern.matcher(email).matches()
+}
+
+// end region
+
+// region Table ======================================================
+
+@Composable
+fun GifImage(context : Context, url : String) {
+	AsyncImage(
+		model = ImageRequest.Builder(context)
+			.data(url)
+			.crossfade(true)
+			.decoderFactory(GifDecoder.Factory())
+			.build(),
+		contentDescription = null,
+		modifier = Modifier
+			.fillMaxSize(),
+		contentScale = ContentScale.Crop
+	)
+}
+
+@SuppressLint("ModifierParameter")
+@Composable
+fun TableHeader(
+	headers : List<String>,
+	weights : List<Float>,
+	backgroundColor : Color = md_theme_admin_primaryContainer,
+	textColor : Color = Color.Black,
+	modifier : Modifier = Modifier
+){
+	Row(
+		modifier = modifier
+			.fillMaxWidth()
+			.background(color = backgroundColor)
+			.padding(vertical = spacing_8, horizontal = spacing_16),
+		horizontalArrangement = Arrangement.SpaceBetween
+	) {
+		headers.forEachIndexed { index, header ->
+			Text(
+				text = header,
+				modifier = Modifier.weight(weights.getOrElse(index) { 1f }),
+				color = textColor
+			)
+		}
+	}
+}
+
+@Composable
+fun TableRow(
+	time: String,
+	name: String,
+	score: String,
+	onClick: () -> Unit
+){
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.background(color = md_theme_admin_tertiaryContainer)
+			.clickable(onClick = onClick)
+			.padding(vertical = spacing_8, horizontal = spacing_16),
+		horizontalArrangement = Arrangement.SpaceBetween
+	) {
+		Text(text = time, modifier = Modifier.weight(1f))
+		Text(text = name, modifier = Modifier.weight(2f))
+		Text(text = score, modifier = Modifier.weight(1f))
+	}
 }
 
 // end region

@@ -10,6 +10,8 @@ import io.rapidz.assignment1.data.QuestionData
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.data.UiState
 import io.rapidz.assignment1.repository.Repository
+import io.rapidz.assignment1.storage.DataStoreInterface
+import io.rapidz.assignment1.storage.DataStoreManager
 import io.rapidz.assignment1.ui.test.DialogType
 import io.rapidz.assignment1.ui.test.isQuestionComplete
 import io.rapidz.assignment1.utils.TimeUtils
@@ -23,6 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TestViewModel @Inject constructor (
 	private val repository: Repository,
+	private val dataStore: DataStoreInterface,
 	savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -39,10 +42,21 @@ class TestViewModel @Inject constructor (
 
 	private val temporarySavedAnswer = mutableMapOf<Int, String>()
 
+	private val _timer = MutableStateFlow(0)
+	val timer: StateFlow<Int> = _timer
+
 	init {
 		loadQuestions()
 		if (usePreviousData) {
 			loadPreviousAnswers()
+		}
+		loadTimerFromDataStore()
+	}
+
+	private fun loadTimerFromDataStore() {
+		viewModelScope.launch {
+			val savedTimer = dataStore.readFromDataStore(DataStoreManager.TIME_LIMIT) ?: 0
+			_timer.value = savedTimer
 		}
 	}
 

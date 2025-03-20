@@ -247,7 +247,7 @@ fun Textarea(
 	val dynamicHeight = screenHeight * 0.65f
 
 	TextField(
-		value = text,
+		value = initialText,
 		onValueChange = {
 			if (!readOnly){
 				text = it

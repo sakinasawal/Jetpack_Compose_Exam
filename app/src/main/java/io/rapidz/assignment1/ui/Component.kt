@@ -129,8 +129,8 @@ fun InputTextSearch(
 @SuppressLint("ModifierParameter")
 @Composable
 fun InputTextFieldTime(
-    value : Int,
-    onValueChange : (Int)->Unit,
+    value : Long,
+    onValueChange : (Long)->Unit,
     label: String,
     placeholder: String,
 	modifier : Modifier = Modifier,
@@ -142,7 +142,7 @@ fun InputTextFieldTime(
 		onValueChange = { newValue ->
 			if (newValue.all { it.isDigit() } || newValue.isEmpty()) {
 				textValue = newValue
-				onValueChange(newValue.toIntOrNull() ?: 0)
+				onValueChange(newValue.toLongOrNull() ?: 0)
 			}
 		},
 		modifier = modifier.fillMaxWidth(),
@@ -186,75 +186,40 @@ fun AppButton(
 @Composable
 fun GeneralAlertDialog(
 	@StringRes titleResId : Int,
-	@StringRes messageResId : Int,
+	@StringRes msgResId : Int? = null,
 	msg : String? = null,
-	onPositiveButtonClick : () -> Unit,
-	onNegativeButtonClick : () -> Unit
+	singleButton: Boolean = false,
+	@StringRes positiveBtnLbl: Int = R.string.dialog_ok,
+	@StringRes negativeBtnLbl: Int = R.string.dialog_no,
+	onDismissRequest: () -> Unit,
+	onPositiveButtonClick : (() -> Unit)? = null,
+	onNegativeButtonClick : (() -> Unit)? = null
 ){
 	AlertDialog(
-		onDismissRequest = {},
-		icon = {
-			Icon(Icons.Default.Bolt, contentDescription = null)
-		},
+		onDismissRequest = onDismissRequest,
+		icon = { Icon(Icons.Default.Bolt, contentDescription = null) },
 		title = { Text(stringResource(titleResId))},
 		text = {
-			Column(
-				modifier = Modifier
-					.padding(spacing_8)
-			) {
-				Text(stringResource(messageResId))
-
+			Column(modifier = Modifier.padding(spacing_8)) {
+				msgResId?.let { Text(stringResource(it)) }
 				Spacer(modifier = Modifier.height(spacing_10))
-				
-				if (msg != null) {
-					Text(msg)
+				msg?.let { Text(it) }
+			}
+		},
+		confirmButton = {
+			TextButton(onClick = { onPositiveButtonClick?.invoke()
+				onDismissRequest()
+			}){
+				Text(stringResource(positiveBtnLbl))
+			}
+		},
+		dismissButton = {
+			if(!singleButton){
+				TextButton(onClick = { onNegativeButtonClick?.invoke()
+					onDismissRequest()
+				}){
+					Text(stringResource(negativeBtnLbl))
 				}
-			}
-
-		},
-		confirmButton = {
-			TextButton(onClick = { onPositiveButtonClick() }) {
-				Text(stringResource(R.string.dialog_yes))
-			}
-		},
-		dismissButton = {
-			TextButton(onClick = { onNegativeButtonClick() }) {
-				Text(stringResource(R.string.dialog_no))
-			}
-		}
-	)
-}
-
-@Composable
-fun EndTestAlertDialog(
-	@StringRes titleResId : Int,
-	@StringRes messageResId : Int,
-	onPositiveButtonClick : () -> Unit,
-	onNegativeButtonClick : () -> Unit
-){
-	AlertDialog(
-		onDismissRequest = {},
-		icon = {
-			Icon(Icons.Default.Done, contentDescription = null)
-		},
-		title = { Text(stringResource(titleResId))},
-		text = {
-			Column(
-				modifier = Modifier
-					.padding(spacing_8)
-			) {
-				Text(stringResource(messageResId))
-			}
-
-		},
-		confirmButton = {
-			TextButton(onClick = { onPositiveButtonClick() }) {
-				Text(stringResource(R.string.dialog_ok))
-			}
-		},
-		dismissButton = {
-			TextButton(onClick = { onNegativeButtonClick() }) {
-				Text(stringResource(R.string.dialog_no))
 			}
 		}
 	)
@@ -269,6 +234,7 @@ fun EndTestAlertDialog(
 fun BottomAppBarPreview() {
 	DefaultTheme {
 		BottomAppBar(role = Role(Constants.Role.ROLE_CANDIDATE),
+			timerText = "00m:00s",
 			showFloatBtn = true)
 	}
 }
@@ -278,6 +244,7 @@ fun BottomAppBarPreview() {
 fun BottomAppBarAdminPreview() {
 	AdminTheme {
 		BottomAppBar(role = Role(Constants.Role.ROLE_ADMIN),
+			timerText = "00m:00s",
 			showDoneIcon = true,
 			showCloseIcon = true)
 	}
@@ -286,6 +253,7 @@ fun BottomAppBarAdminPreview() {
 @Composable
 fun BottomAppBar(
 	role : Role,
+	timerText: String,
 	showDoneIcon: Boolean? = false,
 	showCloseIcon: Boolean? = false,
 	doneIconColor: Color = Color(0xFF018786),
@@ -301,9 +269,21 @@ fun BottomAppBar(
 	onFloatingButtonClick : (() -> Unit)? = null,
 	content: @Composable () -> Unit = {}
 ) {
+
+	val remainingSeconds = remember(timerText) {
+		val parts = timerText.split("m", "s").map { it.trim() }
+		val minutes = parts.getOrNull(0)?.toIntOrNull() ?: 0
+		val seconds = parts.getOrNull(1)?.toIntOrNull() ?: 0
+		(minutes * 60) + seconds
+	}
+
+	val bottomAppBarColor = if (remainingSeconds < 60) md_theme_default_error else MaterialTheme.colorScheme.surface
+	val fabContainerColor = if (remainingSeconds < 60) md_theme_default_onError else FloatingActionButtonDefaults.containerColor
+
 	Scaffold(
 		bottomBar = {
 			BottomAppBar(
+				containerColor = bottomAppBarColor,
 				actions = {
 					if (role.isAdmin()){
 						if (showDoneIcon == true) {
@@ -332,7 +312,7 @@ fun BottomAppBar(
 					Row{
 						Spacer(modifier = Modifier.width(spacing_20))
 						Text(
-							text = "00:00",
+							text = timerText,
 							style = if (role.isCandidate()){
 								MaterialTheme.typography.bodyMedium
 							} else {
@@ -345,6 +325,7 @@ fun BottomAppBar(
 					if (role.isCandidate() && showFloatBtn == true) {
 						FloatingActionButton(
 							onClick = { onFloatingButtonClick?.invoke() },
+							containerColor = fabContainerColor,
 							elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
 						) {
 							Icon(Icons.Default.DoneAll, null)
@@ -365,12 +346,16 @@ fun BottomAppBar(
 
 // end region
 
+// region format timer ================================================
+
 @SuppressLint("DefaultLocale")
-fun formatSecondsToTime(seconds: Int): String {
+fun formatSecondsToTime(seconds: Long): String {
 	val minutes = seconds / 60
 	val remainingSeconds = seconds % 60
 	return String.format("%02dm %02ds", minutes, remainingSeconds)
 }
+
+// end region
 
 // region Regex email ================================================
 

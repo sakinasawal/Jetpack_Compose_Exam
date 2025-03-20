@@ -103,13 +103,10 @@ fun AdminHomeScreen(navController : NavController ?= LocalNavController.current)
 				) {
 					items(candidatesWithScores) { candidateWithScore ->
 						TableRow(
-							time = "N/A",
+							time = formatSecondsToTime(candidateWithScore.totalTimeSpent),
 							name = candidateWithScore.candidate.name,
 							score = candidateWithScore.totalScore?.toString() ?: "?",
-							onClick = {
-								// navigate to the AdminTestScreen
-								navController?.navigate("${Route.ADMIN_TEST}/${candidateWithScore.candidate.id}")
-							}
+							onClick = { navController?.navigate("${Route.ADMIN_TEST}/${candidateWithScore.candidate.id}") }
 						)
 					}
 				}

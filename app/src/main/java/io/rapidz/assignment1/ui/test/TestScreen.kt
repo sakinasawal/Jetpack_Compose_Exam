@@ -23,12 +23,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import io.rapidz.assignment1.ui.EndTestAlertDialog
 import io.rapidz.assignment1.ui.GeneralAlertDialog
 import io.rapidz.assignment1.LocalNavController
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.Screen
 import io.rapidz.assignment1.data.Question
+import io.rapidz.assignment1.data.QuestionData.question
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.data.Role
 import io.rapidz.assignment1.navigate
@@ -50,11 +50,15 @@ fun TestScreen(
 	val dialogState by viewModel.dialogState.collectAsState()
 	val timer by viewModel.timer.collectAsState()
 
+	val formattedTime = formatSecondsToTime(timer)
 	val currentQuestion = uiState.questions.getOrNull(uiState.currentQuestionIndex)
 	val selectedAnswer = currentQuestion?.let { uiState.answers[it.id]?.answerText ?: "" } ?: ""
-
 	var isShowEndTestDialog by remember { mutableStateOf(false) }
-	val isCompleted = selectedAnswer.isNotEmpty()
+
+	val isCompleted = when (currentQuestion?.questionType) {
+		QuestionType.FREE_TEXT -> selectedAnswer.trim().isNotBlank()
+		else -> selectedAnswer.isNotEmpty()
+	}
 
 	val themeWrapper: @Composable (@Composable () -> Unit) -> Unit = if (isCompleted) {
 		{ content -> CompletedQuestionTheme(content) }
@@ -69,6 +73,7 @@ fun TestScreen(
 	themeWrapper{
 		BottomAppBar(
 			role = Role(Constants.Role.ROLE_CANDIDATE),
+			timerText = formattedTime,
 			showFloatBtn = true,
 			onLeftDoubleArrowClick = { viewModel.goToFirstQuestion()},
 			onLeftArrowClick = { viewModel.goToPreviousQuestion() },
@@ -105,8 +110,7 @@ fun TestScreen(
 						QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(
 							options = question.options,
 							currentAnswer = selectedAnswer,
-							onAnswerChange = { selectedOptions ->
-								viewModel.saveAnswerTemporarily(question.id, selectedOptions) }
+							onAnswerChange = { viewModel.saveAnswerTemporarily(question.id, it) }
 						)
 
 						QuestionType.FREE_TEXT -> Textarea(
@@ -287,7 +291,10 @@ private fun QuestionNotCompleteDialog(
 	UncompletedQuestionTheme {
 		GeneralAlertDialog(
 			titleResId = R.string.title_question_not_complete,
-			messageResId = R.string.content_question_not_complete,
+			msgResId = R.string.content_question_not_complete,
+			positiveBtnLbl = R.string.dialog_yes,
+			negativeBtnLbl = R.string.dialog_no,
+			onDismissRequest = { onDismiss() },
 			onPositiveButtonClick = { onProceed() },
 			onNegativeButtonClick = { onDismiss() }
 		)
@@ -302,7 +309,10 @@ private fun AllQuestionCompleteDialog(
 	CompletedQuestionTheme {
 		GeneralAlertDialog(
 			titleResId = R.string.title_end_test,
-			messageResId = R.string.content_end_test,
+			msgResId = R.string.content_end_test,
+			positiveBtnLbl = R.string.dialog_yes,
+			negativeBtnLbl = R.string.dialog_no,
+			onDismissRequest = { onDismiss() },
 			onPositiveButtonClick = { onEndTest() },
 			onNegativeButtonClick = { onDismiss() }
 		)
@@ -317,7 +327,10 @@ private fun AllQuestionNotCompleteDialog(
 	UncompletedQuestionTheme {
 		GeneralAlertDialog(
 			titleResId = R.string.title_question_not_complete,
-			messageResId = R.string.content_all_question_not_complete,
+			msgResId = R.string.content_all_question_not_complete,
+			positiveBtnLbl = R.string.dialog_yes,
+			negativeBtnLbl = R.string.dialog_no,
+			onDismissRequest = { onDismiss() },
 			onPositiveButtonClick = { onEndTest() },
 			onNegativeButtonClick = { onDismiss() }
 		)
@@ -328,9 +341,12 @@ private fun AllQuestionNotCompleteDialog(
 fun EndOfTestDialog(navController: NavController? = null,
 					onDismiss: () -> Unit){
 	CompletedQuestionTheme {
-		EndTestAlertDialog(
+		GeneralAlertDialog(
 			titleResId = R.string.title_end_test,
-			messageResId = R.string.content_end_test_final,
+			msgResId = R.string.content_end_test_final,
+			positiveBtnLbl = R.string.dialog_yes,
+			negativeBtnLbl = R.string.dialog_no,
+			onDismissRequest = { onDismiss() },
 			onPositiveButtonClick = {
 				navController?.navigate(Screen.Role)
 			},

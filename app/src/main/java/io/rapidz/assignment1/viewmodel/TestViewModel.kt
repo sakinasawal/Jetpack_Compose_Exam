@@ -1,5 +1,6 @@
 package io.rapidz.assignment1.viewmodel
 
+import android.os.CountDownTimer
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -42,8 +43,12 @@ class TestViewModel @Inject constructor (
 
 	private val temporarySavedAnswer = mutableMapOf<Int, String>()
 
-	private val _timer = MutableStateFlow(0)
-	val timer: StateFlow<Int> = _timer
+	private val timerLimit = MutableStateFlow(0L)
+	val timer: StateFlow<Long> = timerLimit
+
+	private var initialTimeDuration : Int = 0
+
+	private var countDownTimer : CountDownTimer? = null
 
 	init {
 		loadQuestions()
@@ -55,9 +60,31 @@ class TestViewModel @Inject constructor (
 
 	private fun loadTimerFromDataStore() {
 		viewModelScope.launch {
-			val savedTimer = dataStore.readFromDataStore(DataStoreManager.TIME_LIMIT) ?: 0
-			_timer.value = savedTimer
+			val savedTimer = dataStore.readFromDataStore(DataStoreManager.TIME_LIMIT) ?: 0L
+			val timeInSeconds = savedTimer * 60
+			initialTimeDuration = timeInSeconds.toInt()
+			timerLimit.value = timeInSeconds
+			startCountDown(timeInSeconds)
 		}
+	}
+
+	private fun startCountDown(timeInSeconds : Long){
+		countDownTimer?.cancel()
+
+		countDownTimer = object : CountDownTimer(timeInSeconds * 1000, 1000) {
+			override fun onTick(millisUntilFinished: Long) {
+				timerLimit.value = millisUntilFinished / 1000
+			}
+
+			override fun onFinish() {
+				timerLimit.value = 0
+			}
+		}.start()
+	}
+
+	override fun onCleared() {
+		super.onCleared()
+		countDownTimer?.cancel()
 	}
 
 	private fun loadQuestions() {
@@ -76,14 +103,21 @@ class TestViewModel @Inject constructor (
 		}
 	}
 
+	private fun getRemainingTime(): Int {
+		return timerLimit.value.toInt()
+	}
+
 	fun saveAnswerTemporarily(questionId: Int, answerText: String) {
 		// Store in temporary map without saving to Room DB
 		temporarySavedAnswer[questionId] = answerText
 
+		val remainingTime = getRemainingTime()
+		val timeSpent = (initialTimeDuration - remainingTime).coerceAtLeast(0)
+
 		// Update UI state for immediate UI feedback
 		testUiState.update { currentState ->
 			val updatedAnswers = currentState.answers.toMutableMap().apply {
-				put(questionId, Answer(questionId = questionId, candidateId = candidateId, answerText = answerText, score = null))
+				put(questionId, Answer(questionId = questionId, candidateId = candidateId, answerText = answerText, timeSpent = timeSpent))
 			}
 			currentState.copy(answers = updatedAnswers)
 		}
@@ -94,6 +128,9 @@ class TestViewModel @Inject constructor (
 			val answer = repository.getAnswersByCandidate(candidateId)
 			val existingAnswer = answer.first().find { it.questionId == questionId }
 			val question = uiState.value.questions.find { it.id == questionId }
+
+			val remainingTime = getRemainingTime()
+			val timeSpent = (initialTimeDuration - remainingTime).coerceAtLeast(0)
 
 			question?.let { q ->
 				val totalQuestion = uiState.value.questions.size.takeIf { it > 0 } ?: 1
@@ -106,7 +143,7 @@ class TestViewModel @Inject constructor (
 					QuestionType.FREE_TEXT -> null
 				}
 
-				val answerScore = Answer(questionId = questionId, candidateId = candidateId, answerText = answerText, score = score)
+				val answerScore = Answer(questionId = questionId, candidateId = candidateId, answerText = answerText, score = score, timeSpent = timeSpent)
 
 				existingAnswer?.let {
 					repository.updateAnswer(it.copy(answerText = answerText, score = score))

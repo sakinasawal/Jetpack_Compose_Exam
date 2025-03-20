@@ -1,5 +1,7 @@
 package io.rapidz.assignment1.ui.admin
 
+import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -15,12 +17,19 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Dangerous
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavController
+import io.rapidz.assignment1.LocalNavController
+import io.rapidz.assignment1.R
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.data.Role
 import io.rapidz.assignment1.ui.AdminTheme
 import io.rapidz.assignment1.ui.AppTypography
 import io.rapidz.assignment1.ui.BottomAppBar
+import io.rapidz.assignment1.ui.DefaultTheme
+import io.rapidz.assignment1.ui.GeneralAlertDialog
 import io.rapidz.assignment1.ui.TextLabelTitle
+import io.rapidz.assignment1.ui.formatSecondsToTime
 import io.rapidz.assignment1.ui.md_theme_admin_error
 import io.rapidz.assignment1.ui.spacing_20
 import io.rapidz.assignment1.ui.spacing_4
@@ -29,15 +38,21 @@ import io.rapidz.assignment1.ui.test.RadioButtonAnswer
 import io.rapidz.assignment1.ui.test.Textarea
 import io.rapidz.assignment1.utils.Constants
 
+
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun AdminTestScreen(viewModel : AdminViewModel = hiltViewModel()) {
+fun AdminTestScreen(navController: NavController? = LocalNavController.current,
+					viewModel : AdminViewModel = hiltViewModel()) {
 
 	val uiState by viewModel.uiState.collectAsState()
 	val freeTextScoreUi by viewModel.freeTextScores.collectAsState()
+	val questionTimers by viewModel.questionTimers.collectAsState()
+	val showDialog by viewModel.showDialog.collectAsState()
 
 	val currentQuestion = uiState.questions.getOrNull(uiState.currentQuestionIndex)
 	val candidateAnswer = currentQuestion?.let { uiState.answers[it.id]?.answerText.orEmpty() }
 	val questionType = currentQuestion?.questionType
+	val timeSpent = questionTimers[currentQuestion?.id] ?: 0
 
 	val isFreeText = questionType == QuestionType.FREE_TEXT
 	val freeTextScore = freeTextScoreUi[currentQuestion?.id]
@@ -51,9 +66,35 @@ fun AdminTestScreen(viewModel : AdminViewModel = hiltViewModel()) {
 		else -> false
 	}
 
+	BackHandler {
+		val hasUnscoredFreeText = uiState.questions
+			.filter { it.questionType == QuestionType.FREE_TEXT && freeTextScoreUi[it.id] == null }
+			.minByOrNull { it.id }
+
+		if (hasUnscoredFreeText != null){
+			viewModel.setUnscoredQuestionId(hasUnscoredFreeText.id)
+			viewModel.setShowDialog(true)
+		} else {
+			navController?.popBackStack()
+		}
+	}
+
+	if (showDialog){
+		DefaultTheme {
+			GeneralAlertDialog(
+				titleResId = R.string.title_attention,
+				msg = stringResource(R.string.msg_attention) + " ${viewModel.unscoredQuestionId.value}",
+				singleButton = true,
+				positiveBtnLbl = R.string.dialog_ok,
+				onDismissRequest = { viewModel.setShowDialog(false) }
+			)
+		}
+	}
+
 	AdminTheme {
 		BottomAppBar(
 			role = Role(Constants.Role.ROLE_ADMIN),
+			timerText = formatSecondsToTime(timeSpent.toLong()),
 			showDoneIcon = when{
 				isFreeText && freeTextScore == null -> true
 				isFreeText && freeTextScore == true -> true

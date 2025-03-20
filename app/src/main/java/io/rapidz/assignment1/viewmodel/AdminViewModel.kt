@@ -23,8 +23,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -36,8 +34,8 @@ class AdminViewModel @Inject constructor (
 	savedStateHandle: SavedStateHandle
 ) : ViewModel(){
 
-	private val setTimeLimit = MutableStateFlow(0)
-	val timeLimit: StateFlow<Int> = setTimeLimit
+	private val setTimeLimit = MutableStateFlow(0L)
+	val timeLimit: StateFlow<Long> = setTimeLimit
 
 	private val listCandidatesWithScores = MutableStateFlow<List<CandidateWithScore>>(emptyList())
 	val candidatesWithScores: StateFlow<List<CandidateWithScore>> = listCandidatesWithScores
@@ -57,6 +55,14 @@ class AdminViewModel @Inject constructor (
 
 	private val totalQuestions: Int = QuestionData.question.size
 
+	val questionTimers = MutableStateFlow<Map<Int, Int>>(emptyMap())
+
+	private val isShowDialog = MutableStateFlow(false)
+	val showDialog: StateFlow<Boolean> = isShowDialog
+
+	private val unscoredQuestion = MutableStateFlow<Int?>(null)
+	val unscoredQuestionId: StateFlow<Int?> = unscoredQuestion
+
 	init {
 		timerLimit()
 		loadCandidate()
@@ -68,11 +74,13 @@ class AdminViewModel @Inject constructor (
 
 	private fun timerLimit(){
 		viewModelScope.launch {
-			setTimeLimit.value = dataStore.readFromDataStore(DataStoreManager.TIME_LIMIT) ?: 0
+			val storeTime = dataStore.readFromDataStore(DataStoreManager.TIME_LIMIT) ?: 30L
+			setTimeLimit.value = storeTime
+			dataStore.writeToDataStore(DataStoreManager.TIME_LIMIT, storeTime)
 		}
 	}
 
-	fun setTimeLimit(newTimeLimit : Int){
+	fun setTimeLimit(newTimeLimit : Long){
 		setTimeLimit.value = newTimeLimit
 		viewModelScope.launch {
 			dataStore.writeToDataStore(DataStoreManager.TIME_LIMIT, newTimeLimit)
@@ -87,7 +95,12 @@ class AdminViewModel @Inject constructor (
 				if (answers.size != totalQuestions) return@mapNotNull null
 				val hasNullScore = answers.any { it.score == null }
 				val totalScore = if(hasNullScore) null else answers.sumOf { it.score ?: 0 }
-				totalScore?.let { CandidateWithScore(candidate, it) }
+
+				val totalTimeSpent = if (answers.isNotEmpty()) {
+					answers.maxOfOrNull { it.timeSpent.toLong() } ?: 0L
+				} else 0L
+
+				totalScore?.let { CandidateWithScore(candidate, it, totalTimeSpent) }
 			}
 			listCandidatesWithScores.value = candidatesWithScores
 			delay(2000)
@@ -121,7 +134,11 @@ class AdminViewModel @Inject constructor (
 				val hasNullScore = answers.any { it.score == null }
 				val totalScore = if (hasNullScore) null else answers.sumOf { it.score ?: 0 }
 
-				CandidateWithScore(candidate, totalScore)
+				val totalTimeSpent = if (answers.isNotEmpty()) {
+					answers.maxOfOrNull { it.timeSpent.toLong()} ?: 0L
+				} else 0L
+
+				CandidateWithScore(candidate, totalScore, totalTimeSpent)
 			}.filter { it.candidate.name.contains(query, ignoreCase = true) }
 
 			listCandidatesWithScores.value = filteredCandidates
@@ -142,6 +159,9 @@ class AdminViewModel @Inject constructor (
 			val freeTextScoreMap = answers
 				.filter { it.questionId in questions.filter { q -> q.questionType == QuestionType.FREE_TEXT }.map { q->q.id } }
 				.associate { it.questionId to (it.score?.let { s -> s > 0 }) }
+
+			val timeMap = answers.associate { it.questionId to (it.timeSpent) }
+			questionTimers.value = timeMap
 
 			adminUiState.update { currentState ->
 				currentState.copy(
@@ -196,7 +216,7 @@ class AdminViewModel @Inject constructor (
 
 				val score = if (isCorrect) scorePerQuestion else 0
 
-				val updatedAnswer = Answer(questionId = questionId, candidateId = candidateId, answerText = existingAnswer?.answerText?:"", score = score)
+				val updatedAnswer = Answer(questionId = questionId, candidateId = candidateId, answerText = existingAnswer?.answerText?:"", score = score, timeSpent = existingAnswer?.timeSpent!!)
 
 				existingAnswer?.let {
 					repository.updateAnswer(it.copy(score = score))
@@ -214,6 +234,14 @@ class AdminViewModel @Inject constructor (
 				uiFreeTextScores.update { it + (questionId to isCorrect) }
 			}
 		}
+	}
+
+	fun setShowDialog(value: Boolean) {
+		isShowDialog.value = value
+	}
+
+	fun setUnscoredQuestionId(id: Int) {
+		unscoredQuestion.value = id
 	}
 
 	// end region

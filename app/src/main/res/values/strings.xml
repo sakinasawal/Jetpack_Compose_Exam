@@ -35,6 +35,8 @@
 	<string name="title_question_not_complete">Question Not Complete</string>
 	<string name="content_question_not_complete">The current question is not complete, are you sure you want to proceed to the next question?</string>
 	<string name="content_all_question_not_complete">The test is not complete, are you sure you want to end it?</string>
+	<string name="title_attention">Attention</string>
+	<string name="msg_attention">You must score question</string>
 
 	<!-- Question -->
 	<string name="title_question_1">Question 1</string>

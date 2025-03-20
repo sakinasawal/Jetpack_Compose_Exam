@@ -132,8 +132,11 @@ fun ShowAlertDialog(
 	DefaultTheme {
 		GeneralAlertDialog(
 			titleResId = R.string.title_last_test,
-			messageResId = R.string.message_last_test,
+			msgResId = R.string.message_last_test,
 			msg = stringResource(R.string.candidate_dialog, candidateName),
+			positiveBtnLbl = R.string.dialog_yes,
+			negativeBtnLbl = R.string.dialog_no,
+			onDismissRequest = { },
 			onPositiveButtonClick = { onContinue() },
 			onNegativeButtonClick = { onNewTest() }
 		)

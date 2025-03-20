@@ -61,12 +61,6 @@ class TestViewModel @Inject constructor (
 
 	private fun loadTimerFromDataStore() {
 		viewModelScope.launch {
-//			val savedTimer = dataStore.readFromDataStore(DataStoreManager.TIME_LIMIT) ?: 30L
-//			val timeInSeconds = savedTimer * 60
-//			initialTimeDuration = timeInSeconds.toInt()
-//			timerLimit.value = timeInSeconds
-//			startCountDown(timeInSeconds)
-
 			val savedTimer = dataStore.readFromDataStore(DataStoreManager.TIME_LIMIT) ?: 30L
 			val totalTime = savedTimer * 60
 
@@ -125,7 +119,21 @@ class TestViewModel @Inject constructor (
 		return timerLimit.value.toInt()
 	}
 
-	fun saveAnswer(questionId: Int, answerText: String) {
+	fun saveAnswerTemporarily(questionId: Int, answerText: String) {
+		// Store in temporary map without saving to Room DB
+		temporarySavedAnswer[questionId] = answerText
+		val remainingTime = getRemainingTime()
+		val timeSpent = (initialTimeDuration - remainingTime).coerceAtLeast(0)
+		// Update UI state for immediate UI feedback
+		testUiState.update { currentState ->
+			val updatedAnswers = currentState.answers.toMutableMap().apply {
+				put(questionId, Answer(questionId = questionId, candidateId = candidateId, answerText = answerText, timeSpent = timeSpent))
+			}
+			currentState.copy(answers = updatedAnswers)
+		}
+	}
+
+	private fun saveAnswer(questionId: Int, answerText: String) {
 		viewModelScope.launch {
 			val answer = repository.getAnswersByCandidate(candidateId)
 			val existingAnswer = answer.first().find { it.questionId == questionId }

@@ -104,18 +104,18 @@ fun TestScreen(
 						QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(
 							options = question.options,
 							currentAnswer = selectedAnswer,
-							onAnswerChange = { viewModel.saveAnswer(question.id, it) }
+							onAnswerChange = { viewModel.saveAnswerTemporarily(question.id, it) }
 						)
 
 						QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(
 							options = question.options,
 							currentAnswer = selectedAnswer,
-							onAnswerChange = { viewModel.saveAnswer(question.id, it) }
+							onAnswerChange = { viewModel.saveAnswerTemporarily(question.id, it) }
 						)
 
 						QuestionType.FREE_TEXT -> Textarea(
 							initialText = selectedAnswer,
-							onAnswerChange = { viewModel.saveAnswer(question.id, it) }
+							onAnswerChange = { viewModel.saveAnswerTemporarily(question.id, it) }
 						)
 					}
 				}

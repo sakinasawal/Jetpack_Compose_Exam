@@ -104,18 +104,18 @@ fun TestScreen(
 						QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(
 							options = question.options,
 							currentAnswer = selectedAnswer,
-							onAnswerChange = { viewModel.saveAnswerTemporarily(question.id, it) }
+							onAnswerChange = { viewModel.saveAnswer(question.id, it) }
 						)
 
 						QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(
 							options = question.options,
 							currentAnswer = selectedAnswer,
-							onAnswerChange = { viewModel.saveAnswerTemporarily(question.id, it) }
+							onAnswerChange = { viewModel.saveAnswer(question.id, it) }
 						)
 
 						QuestionType.FREE_TEXT -> Textarea(
 							initialText = selectedAnswer,
-							onAnswerChange = { viewModel.saveAnswerTemporarily(question.id, it) }
+							onAnswerChange = { viewModel.saveAnswer(question.id, it) }
 						)
 					}
 				}
@@ -247,7 +247,7 @@ fun Textarea(
 	val dynamicHeight = screenHeight * 0.65f
 
 	TextField(
-		value = initialText,
+		value = text,
 		onValueChange = {
 			if (!readOnly){
 				text = it

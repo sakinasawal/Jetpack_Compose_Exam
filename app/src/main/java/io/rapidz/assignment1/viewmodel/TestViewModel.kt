@@ -19,6 +19,7 @@ import io.rapidz.assignment1.utils.TimeUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -60,11 +61,28 @@ class TestViewModel @Inject constructor (
 
 	private fun loadTimerFromDataStore() {
 		viewModelScope.launch {
-			val savedTimer = dataStore.readFromDataStore(DataStoreManager.TIME_LIMIT) ?: 0L
-			val timeInSeconds = savedTimer * 60
-			initialTimeDuration = timeInSeconds.toInt()
-			timerLimit.value = timeInSeconds
-			startCountDown(timeInSeconds)
+//			val savedTimer = dataStore.readFromDataStore(DataStoreManager.TIME_LIMIT) ?: 30L
+//			val timeInSeconds = savedTimer * 60
+//			initialTimeDuration = timeInSeconds.toInt()
+//			timerLimit.value = timeInSeconds
+//			startCountDown(timeInSeconds)
+
+			val savedTimer = dataStore.readFromDataStore(DataStoreManager.TIME_LIMIT) ?: 30L
+			val totalTime = savedTimer * 60
+
+			val previousAnswers = repository.getAnswersByCandidate(candidateId).firstOrNull() ?: emptyList()
+			val totalTimeSpent = previousAnswers.sumOf { it.timeSpent }
+
+			val remainingTime = (totalTime - totalTimeSpent).coerceAtLeast(0)
+
+			if (previousAnswers.isNotEmpty()){
+				timerLimit.value = remainingTime
+				initialTimeDuration = remainingTime.toInt()
+			} else {
+				timerLimit.value = totalTime
+				initialTimeDuration = totalTime.toInt()
+			}
+			startCountDown(timerLimit.value)
 		}
 	}
 
@@ -107,23 +125,7 @@ class TestViewModel @Inject constructor (
 		return timerLimit.value.toInt()
 	}
 
-	fun saveAnswerTemporarily(questionId: Int, answerText: String) {
-		// Store in temporary map without saving to Room DB
-		temporarySavedAnswer[questionId] = answerText
-
-		val remainingTime = getRemainingTime()
-		val timeSpent = (initialTimeDuration - remainingTime).coerceAtLeast(0)
-
-		// Update UI state for immediate UI feedback
-		testUiState.update { currentState ->
-			val updatedAnswers = currentState.answers.toMutableMap().apply {
-				put(questionId, Answer(questionId = questionId, candidateId = candidateId, answerText = answerText, timeSpent = timeSpent))
-			}
-			currentState.copy(answers = updatedAnswers)
-		}
-	}
-
-	private fun saveAnswer(questionId: Int, answerText: String) {
+	fun saveAnswer(questionId: Int, answerText: String) {
 		viewModelScope.launch {
 			val answer = repository.getAnswersByCandidate(candidateId)
 			val existingAnswer = answer.first().find { it.questionId == questionId }

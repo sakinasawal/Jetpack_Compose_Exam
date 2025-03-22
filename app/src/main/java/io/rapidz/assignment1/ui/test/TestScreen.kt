@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -28,7 +29,6 @@ import io.rapidz.assignment1.LocalNavController
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.Screen
 import io.rapidz.assignment1.data.Question
-import io.rapidz.assignment1.data.QuestionData.question
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.data.Role
 import io.rapidz.assignment1.navigate
@@ -42,10 +42,7 @@ import io.rapidz.assignment1.viewmodel.NavigationDirection
 import io.rapidz.assignment1.viewmodel.TestViewModel
 
 @Composable
-fun TestScreen(
-	navController: NavController? = LocalNavController.current,
-	viewModel : TestViewModel = hiltViewModel()
-){
+fun Test(navController: NavController? = LocalNavController.current, viewModel : TestViewModel = hiltViewModel()){
 	val uiState by viewModel.uiState.collectAsState()
 	val dialogState by viewModel.dialogState.collectAsState()
 	val timer by viewModel.timer.collectAsState()
@@ -71,56 +68,12 @@ fun TestScreen(
 	}
 
 	themeWrapper{
-		BottomAppBar(
-			role = Role(Constants.Role.ROLE_CANDIDATE),
-			timerText = formattedTime,
-			showFloatBtn = true,
-			onLeftDoubleArrowClick = { viewModel.goToFirstQuestion()},
-			onLeftArrowClick = { viewModel.goToPreviousQuestion() },
-			onRightArrowClick = { viewModel.goToNextQuestion() },
-			onRightDoubleArrowClick = {viewModel.goToLastQuestion() },
-			onFloatingButtonClick = { viewModel.checkAllQuestions() }
-		){
-			Column(
-				modifier = Modifier
-					.fillMaxSize()
-					.padding(spacing_20)
-			){
-				currentQuestion?.let { question ->
-					TextLabelTitle(
-						text = "Question" + " ${question.id}",
-						typographyStyle = AppTypography.titleLarge
-					)
-
-					Spacer(modifier = Modifier.height(spacing_20))
-
-					TextLabelTitle(
-						text = question.questionText
-					)
-
-					Spacer(modifier = Modifier.height(spacing_4))
-
-					when (question.questionType){
-						QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(
-							options = question.options,
-							currentAnswer = selectedAnswer,
-							onAnswerChange = { viewModel.saveAnswerTemporarily(question.id, it) }
-						)
-
-						QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(
-							options = question.options,
-							currentAnswer = selectedAnswer,
-							onAnswerChange = { viewModel.saveAnswerTemporarily(question.id, it) }
-						)
-
-						QuestionType.FREE_TEXT -> Textarea(
-							initialText = selectedAnswer,
-							onAnswerChange = { viewModel.saveAnswerTemporarily(question.id, it) }
-						)
-					}
-				}
-			}
-		}
+		TestScreen(
+			viewModel = viewModel,
+			formattedTime = formattedTime,
+			currentQuestion = currentQuestion,
+			selectedAnswer = selectedAnswer
+		)
 	}
 
 	// Display dialog
@@ -165,105 +118,66 @@ fun TestScreen(
 	}
 }
 
-// ================= Region Question Type =====================
-
-/**
- * List of answers (3 types)
- */
-
 @Composable
-fun RadioButtonAnswer(options: List<String>, currentAnswer: String, onAnswerChange: ((String) -> Unit)? = null){
-	var selectedOption by remember(currentAnswer) { mutableStateOf(currentAnswer) }
-	Column {
-		options.forEach{ option ->
-			Row(
-				modifier = Modifier
-					.padding(all = spacing_4)
-					.height(spacing_24)
-					.selectable(
-						selected = selectedOption == option,
-						onClick = {
-							selectedOption = option
-							onAnswerChange?.let { it(option) }
-						}
-					),
-				verticalAlignment = Alignment.CenterVertically
-			){
-				RadioButton(
-					selected = selectedOption == option,
-					onClick = null
+fun TestScreen(
+	viewModel: TestViewModel? = null,
+	formattedTime: String,
+	currentQuestion : Question?,
+	selectedAnswer : String,
+){
+	BottomAppBar(
+		role = Role(Constants.Role.ROLE_CANDIDATE),
+		timerText = formattedTime,
+		showFloatBtn = true,
+		onLeftDoubleArrowClick = { viewModel?.goToFirstQuestion()},
+		onLeftArrowClick = { viewModel?.goToPreviousQuestion() },
+		onRightArrowClick = { viewModel?.goToNextQuestion() },
+		onRightDoubleArrowClick = {viewModel?.goToLastQuestion() },
+		onFloatingButtonClick = { viewModel?.checkAllQuestions() }
+	){
+		Column(
+			modifier = Modifier
+				.fillMaxSize()
+				.padding(spacing_20)
+		){
+			currentQuestion?.let { question ->
+				TextLabelTitle(
+					text = "Question" + " ${question.id}",
+					typographyStyle = AppTypography.titleLarge
 				)
-				Text(
-					text = option,
-					modifier = Modifier.padding(start = spacing_8)
+
+				Spacer(modifier = Modifier.height(spacing_20))
+
+				TextLabelTitle(
+					text = question.questionText
 				)
+
+				Spacer(modifier = Modifier.height(spacing_4))
+
+				when (question.questionType){
+					QuestionType.SINGLE_CHOICE -> RadioButtonAnswer(
+						options = question.options,
+						currentAnswer = selectedAnswer,
+						onAnswerChange = { viewModel?.saveAnswerTemporarily(question.id, it) }
+					)
+
+					QuestionType.MULTIPLE_CHOICE -> CheckBoxAnswer(
+						options = question.options,
+						currentAnswer = selectedAnswer,
+						onAnswerChange = { viewModel?.saveAnswerTemporarily(question.id, it) }
+					)
+
+					QuestionType.FREE_TEXT -> Textarea(
+						initialText = selectedAnswer,
+						onAnswerChange = { viewModel?.saveAnswerTemporarily(question.id, it) }
+					)
+				}
 			}
 		}
 	}
 }
 
-@Composable
-fun CheckBoxAnswer(options: List<String>, currentAnswer: String, onAnswerChange: ((String) -> Unit)? = null){
-	val initialCheckedStates = remember(currentAnswer) {
-		currentAnswer.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
-	}
-	val checkedStates = remember { mutableStateMapOf<String, Boolean>() }
-
-	LaunchedEffect(currentAnswer) {
-		checkedStates.clear()
-		options.forEach { option ->
-			checkedStates[option] = initialCheckedStates.contains(option)
-		}
-	}
-
-	Column(
-		modifier = Modifier.fillMaxSize()
-	) {
-		options.forEach { option ->
-			Row(verticalAlignment = Alignment.CenterVertically) {
-				Checkbox(
-					checked = checkedStates[option] ?: false,
-					onCheckedChange = { isChecked ->
-						checkedStates[option] = isChecked
-						val selectedOptions = checkedStates.filter { it.value }.keys
-						onAnswerChange?.let { it(selectedOptions.joinToString(", ")) }
-					}
-				)
-				Text(text = option)
-			}
-		}
-	}
-}
-
-@Composable
-fun Textarea(
-	initialText: String = "",
-	readOnly: Boolean = false,
-	onAnswerChange: (String) -> Unit = {}
-) {
-	var text by remember { mutableStateOf(initialText) }
-
-	val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-	val dynamicHeight = screenHeight * 0.65f
-
-	TextField(
-		value = initialText,
-		onValueChange = {
-			if (!readOnly){
-				text = it
-				onAnswerChange(it)
-			}
-		},
-		modifier = Modifier
-			.fillMaxWidth()
-			.heightIn(min = dynamicHeight)
-			.padding(spacing_4)
-			.border(width = spacing_1, color = Color.Black),
-		readOnly = readOnly
-	)
-}
-
-// ================= Region Dialog =====================
+// ================= Region Dialog Test =====================
 
 enum class DialogType {
 	QUESTION_NOT_COMPLETE,
@@ -285,8 +199,8 @@ fun isQuestionComplete(question: Question, currentAnswer: String): Boolean {
 
 @Composable
 private fun QuestionNotCompleteDialog(
-	onProceed: () -> Unit,
-	onDismiss: () -> Unit
+	onProceed: () -> Unit = {},
+	onDismiss: () -> Unit = {}
 ) {
 	UncompletedQuestionTheme {
 		GeneralAlertDialog(
@@ -303,8 +217,8 @@ private fun QuestionNotCompleteDialog(
 
 @Composable
 private fun AllQuestionCompleteDialog(
-	onDismiss: () -> Unit,
-	onEndTest: () -> Unit
+	onDismiss: () -> Unit = {},
+	onEndTest: () -> Unit = {}
 ){
 	CompletedQuestionTheme {
 		GeneralAlertDialog(
@@ -321,8 +235,8 @@ private fun AllQuestionCompleteDialog(
 
 @Composable
 private fun AllQuestionNotCompleteDialog(
-	onDismiss: () -> Unit,
-	onEndTest: () -> Unit
+	onDismiss: () -> Unit = {},
+	onEndTest: () -> Unit = {}
 ) {
 	UncompletedQuestionTheme {
 		GeneralAlertDialog(
@@ -339,7 +253,7 @@ private fun AllQuestionNotCompleteDialog(
 
 @Composable
 fun EndOfTestDialog(navController: NavController? = null,
-					onDismiss: () -> Unit){
+					onDismiss: () -> Unit = {}){
 	CompletedQuestionTheme {
 		GeneralAlertDialog(
 			titleResId = R.string.title_end_test,
@@ -354,3 +268,71 @@ fun EndOfTestDialog(navController: NavController? = null,
 		)
 	}
 }
+
+// endregion
+
+// Region Preview ==================================================
+
+@Preview
+@Composable
+fun TestScreenSingleChoiceQuestionPreview(){
+	val fakeQuestion = Question(
+		id = 1,
+		questionText = "What is your favorite programming language?",
+		questionType = QuestionType.SINGLE_CHOICE,
+		options = listOf("Kotlin", "Java", "Swift", "Python")
+	)
+
+	CompletedQuestionTheme{
+		TestScreen(
+			formattedTime = "05m:30s",
+			currentQuestion = fakeQuestion,
+			selectedAnswer = "Kotlin"
+		)
+	}
+}
+
+@Preview
+@Composable
+fun TestScreenMultipleChoiceQuestionPreview(){
+	val fakeQuestion = Question(
+		id = 2,
+		questionText = "What is your favorite programming language?",
+		questionType = QuestionType.MULTIPLE_CHOICE,
+		options = listOf("Kotlin", "Java", "Swift", "Python")
+	)
+
+	UncompletedQuestionTheme{
+		TestScreen(
+			formattedTime = "05m:30s",
+			currentQuestion = fakeQuestion,
+			selectedAnswer = ""
+		)
+	}
+}
+
+@Preview
+@Composable
+fun QuestionNotCompletePreview(){
+	QuestionNotCompleteDialog()
+}
+
+@Preview
+@Composable
+fun AllQuestionCompleteDialogPreview(){
+	AllQuestionCompleteDialog()
+}
+
+@Preview
+@Composable
+fun AllQuestionNotCompleteDialogPreview(){
+	AllQuestionNotCompleteDialog()
+}
+
+@Preview
+@Composable
+fun EndOfTestDialogPreview(){
+	EndOfTestDialog()
+}
+
+// endregion

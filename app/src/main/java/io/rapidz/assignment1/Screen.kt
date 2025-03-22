@@ -5,12 +5,12 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import io.rapidz.assignment1.ui.admin.AdminHomeScreen
+import io.rapidz.assignment1.ui.admin.AdminHome
 import io.rapidz.assignment1.ui.admin.AdminScreen
-import io.rapidz.assignment1.ui.admin.AdminTestScreen
-import io.rapidz.assignment1.ui.candidate.CandidateRegisterScreen
+import io.rapidz.assignment1.ui.admin.AdminTest
+import io.rapidz.assignment1.ui.candidate.CandidateRegister
 import io.rapidz.assignment1.ui.role.RoleSelectionScreen
-import io.rapidz.assignment1.ui.test.TestScreen
+import io.rapidz.assignment1.ui.test.Test
 
 object Route {
 	const val ROLE = "Role"
@@ -58,20 +58,20 @@ fun NavGraphBuilder.composable(screen: Screen) {
 		when(screen) {
 			is Screen.Role -> RoleSelectionScreen()
 			is Screen.Admin -> AdminScreen()
-			is Screen.AdminHome -> AdminHomeScreen()
+			is Screen.AdminHome -> AdminHome()
 
 			is Screen.AdminTest -> {
 				val candidateId = entry.arguments?.getLong(Key.CANDIDATE_ID)
 				if (candidateId != null) {
-					AdminTestScreen()
+					AdminTest()
 				} else {
 					error("Candidate ID is required.")
 				}
 			}
 
-			is Screen.CandidateRegister -> CandidateRegisterScreen()
+			is Screen.CandidateRegister -> CandidateRegister()
 
-			is Screen.Test -> TestScreen()
+			is Screen.Test -> Test()
 		}
 	}
 }

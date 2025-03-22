@@ -19,30 +19,33 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.hilt.navigation.compose.hiltViewModel
+import io.rapidz.assignment1.data.CandidateUiState
 import io.rapidz.assignment1.viewmodel.CandidateViewModel
 
 @Composable
-fun CandidateRegisterScreen(navController: NavController? = LocalNavController.current) {
-
+fun CandidateRegister(navController: NavController? = LocalNavController.current,
+					  viewModel: CandidateViewModel = hiltViewModel()
+) {
 	val context = LocalContext.current
-	val viewModel : CandidateViewModel = hiltViewModel()
 	val candidateUiState by viewModel.uiState.collectAsState()
 	val toastMessage by viewModel.toastMessage.collectAsState()
 	val isRegisterEnable = candidateUiState.name.isNotBlank() && candidateUiState.email.isNotBlank() && isValidEmail(candidateUiState.email)
+
 	val focusManager = LocalFocusManager.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 
-	DefaultTheme {
+	viewModel.let {
 		CandidateScreenRegisterForm(
 			name = candidateUiState.name,
 			emailAddress = candidateUiState.email,
 			isRegisterEnable = isRegisterEnable,
-			onNameChange = viewModel::onNameChange,
-			onEmailAddressChange = viewModel::onEmailChange,
+			onNameChange = it::onNameChange,
+			onEmailAddressChange = it::onEmailChange,
 			onRegisterClick = {
-				viewModel.registerCandidate{ candidateId, usePreviousData ->
+				it.registerCandidate{ candidateId, usePreviousData ->
 					navController?.navigate("${Route.TEST}/$candidateId?${Key.USE_PREVIOUS_DATA}=${usePreviousData}")
 				}
 			},
@@ -52,6 +55,7 @@ fun CandidateRegisterScreen(navController: NavController? = LocalNavController.c
 			}
 		)
 	}
+
 
 	toastMessage?.let { message ->
 		Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -83,51 +87,53 @@ private fun CandidateScreenRegisterForm(
 	onRegisterClick: () -> Unit,
 	onBackgroundTap : () -> Unit
 ){
-	Column(
-		modifier = Modifier
-			.fillMaxSize()
-			.background(color = md_theme_default_background)
-			.padding(all = spacing_20)
-			.pointerInput(Unit) {
-				detectTapGestures(onTap = { onBackgroundTap() })
-			},
-		verticalArrangement = Arrangement.spacedBy(spacing_20),
-		horizontalAlignment = Alignment.Start
-	) {
+	DefaultTheme {
+		Column(
+			modifier = Modifier
+				.fillMaxSize()
+				.background(color = md_theme_default_background)
+				.padding(all = spacing_20)
+				.pointerInput(Unit) {
+					detectTapGestures(onTap = { onBackgroundTap() })
+				},
+			verticalArrangement = Arrangement.spacedBy(spacing_20),
+			horizontalAlignment = Alignment.Start
+		) {
 
-		TextLabel(
-			text = R.string.candidate_registration,
-			typographyStyle = AppTypography.titleLarge
-		)
+			TextLabel(
+				text = R.string.candidate_registration,
+				typographyStyle = AppTypography.titleLarge
+			)
 
-		InputTextField(
-			value = name,
-			onValueChange = onNameChange,
-			placeholder = stringResource(id = R.string.name)
-		)
+			InputTextField(
+				value = name,
+				onValueChange = onNameChange,
+				placeholder = stringResource(id = R.string.name)
+			)
 
-		InputTextField(
-			value = emailAddress,
-			onValueChange = onEmailAddressChange,
-			placeholder = stringResource(id = R.string.email_address)
-		)
+			InputTextField(
+				value = emailAddress,
+				onValueChange = onEmailAddressChange,
+				placeholder = stringResource(id = R.string.email_address)
+			)
 
-		Spacer(Modifier.weight(1f))
+			Spacer(Modifier.weight(1f))
 
-		AppButton(
-			textRes = R.string.register,
-			onClick = onRegisterClick,
-			modifier = Modifier.fillMaxWidth(),
-			enabled = isRegisterEnable
-		)
+			AppButton(
+				textRes = R.string.register,
+				onClick = onRegisterClick,
+				modifier = Modifier.fillMaxWidth(),
+				enabled = isRegisterEnable
+			)
+		}
 	}
 }
 
 @Composable
 fun ShowAlertDialog(
-	candidateName : String,
-	onContinue: () -> Unit,
-	onNewTest: () -> Unit
+	candidateName : String = "",
+	onContinue: (() -> Unit) ? = null,
+	onNewTest: (() -> Unit) ? = null
 ){
 	DefaultTheme {
 		GeneralAlertDialog(
@@ -137,10 +143,28 @@ fun ShowAlertDialog(
 			positiveBtnLbl = R.string.dialog_yes,
 			negativeBtnLbl = R.string.dialog_no,
 			onDismissRequest = { },
-			onPositiveButtonClick = { onContinue() },
-			onNegativeButtonClick = { onNewTest() }
+			onPositiveButtonClick = { onContinue?.let { it() } },
+			onNegativeButtonClick = { onNewTest?.let { it() } }
 		)
 	}
 }
 
+@Preview
+@Composable
+fun CandidateRegisterPreview(){
+	CandidateScreenRegisterForm(
+		name = "Sakina",
+		emailAddress = "sakina@gmail.com",
+		isRegisterEnable = true,
+		onNameChange = {},
+		onEmailAddressChange = {},
+		onRegisterClick = {},
+		onBackgroundTap = {}
+	)
+}
 
+@Preview
+@Composable
+fun ShowAlertDialogPreview(){
+	ShowAlertDialog()
+}

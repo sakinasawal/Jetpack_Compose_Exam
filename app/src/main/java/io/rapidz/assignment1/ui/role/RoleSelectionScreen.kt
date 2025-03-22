@@ -69,5 +69,5 @@ fun RoleSelectionScreen(navController: NavController? = LocalNavController.curre
 @Preview
 @Composable
 fun RoleSelectionScreenPreview(){
-	RoleSelectionScreen()
+	RoleSelectionScreen(navController = null)
 }

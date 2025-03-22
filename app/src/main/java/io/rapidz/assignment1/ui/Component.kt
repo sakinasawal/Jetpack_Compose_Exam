@@ -4,9 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -21,10 +23,13 @@ import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
@@ -32,10 +37,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
@@ -152,7 +159,7 @@ fun InputTextFieldTime(
 	)
 }
 
-// end region
+// endregion
 
 // region Button =============================================
 
@@ -179,7 +186,7 @@ fun AppButton(
 	}
 }
 
-// end region
+// endregion
 
 // region Dialog ==================================================
 
@@ -225,7 +232,7 @@ fun GeneralAlertDialog(
 	)
 }
 
-// end region
+// endregion
 
 // region Bottom Nav Bar ==============================================
 
@@ -277,8 +284,8 @@ fun BottomAppBar(
 		(minutes * 60) + seconds
 	}
 
-	val bottomAppBarColor = if (remainingSeconds < 60) md_theme_default_error else MaterialTheme.colorScheme.surface
-	val fabContainerColor = if (remainingSeconds < 60) md_theme_default_onError else FloatingActionButtonDefaults.containerColor
+	val bottomAppBarColor = if (role.isCandidate() && remainingSeconds < 60) md_theme_default_error else MaterialTheme.colorScheme.surface
+	val fabContainerColor = if (role.isCandidate() && remainingSeconds < 60) md_theme_default_onError else FloatingActionButtonDefaults.containerColor
 
 	Scaffold(
 		bottomBar = {
@@ -344,7 +351,107 @@ fun BottomAppBar(
 	}
 }
 
-// end region
+// endregion
+
+// ================= Region Question Type =====================
+
+/**
+ * List of answers (3 types)
+ */
+
+@Composable
+fun RadioButtonAnswer(options: List<String>, currentAnswer: String, onAnswerChange: ((String) -> Unit)? = null){
+	var selectedOption by remember(currentAnswer) { mutableStateOf(currentAnswer) }
+	Column {
+		options.forEach{ option ->
+			Row(
+				modifier = Modifier
+					.padding(all = spacing_4)
+					.height(spacing_24)
+					.selectable(
+						selected = selectedOption == option,
+						onClick = {
+							selectedOption = option
+							onAnswerChange?.let { it(option) }
+						}
+					),
+				verticalAlignment = Alignment.CenterVertically
+			){
+				RadioButton(
+					selected = selectedOption == option,
+					onClick = null
+				)
+				Text(
+					text = option,
+					modifier = Modifier.padding(start = spacing_8)
+				)
+			}
+		}
+	}
+}
+
+@Composable
+fun CheckBoxAnswer(options: List<String>, currentAnswer: String, onAnswerChange: ((String) -> Unit)? = null){
+	val initialCheckedStates = remember(currentAnswer) {
+		currentAnswer.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+	}
+	val checkedStates = remember { mutableStateMapOf<String, Boolean>() }
+
+	LaunchedEffect(currentAnswer) {
+		checkedStates.clear()
+		options.forEach { option ->
+			checkedStates[option] = initialCheckedStates.contains(option)
+		}
+	}
+
+	Column(
+		modifier = Modifier.fillMaxSize()
+	) {
+		options.forEach { option ->
+			Row(verticalAlignment = Alignment.CenterVertically) {
+				Checkbox(
+					checked = checkedStates[option] ?: false,
+					onCheckedChange = { isChecked ->
+						checkedStates[option] = isChecked
+						val selectedOptions = checkedStates.filter { it.value }.keys
+						onAnswerChange?.let { it(selectedOptions.joinToString(", ")) }
+					}
+				)
+				Text(text = option)
+			}
+		}
+	}
+}
+
+@Composable
+fun Textarea(
+	initialText: String = "",
+	readOnly: Boolean = false,
+	onAnswerChange: (String) -> Unit = {}
+) {
+	var text by remember { mutableStateOf(initialText) }
+
+	val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+	val dynamicHeight = screenHeight * 0.65f
+
+	TextField(
+		value = initialText,
+		onValueChange = {
+			if (!readOnly){
+				text = it
+				onAnswerChange(it)
+			}
+		},
+		modifier = Modifier
+			.fillMaxWidth()
+			.heightIn(min = dynamicHeight)
+			.padding(spacing_4)
+			.border(width = spacing_1, color = Color.Black),
+		readOnly = readOnly
+	)
+}
+
+// endregion
 
 // region format timer ================================================
 
@@ -355,7 +462,7 @@ fun formatSecondsToTime(seconds: Long): String {
 	return String.format("%02dm %02ds", minutes, remainingSeconds)
 }
 
-// end region
+// endregion
 
 // region Regex email ================================================
 
@@ -365,7 +472,7 @@ fun isValidEmail(email : String) : Boolean {
 	return pattern.matcher(email).matches()
 }
 
-// end region
+// endregion
 
 // region Table ======================================================
 
@@ -431,4 +538,4 @@ fun TableRow(
 	}
 }
 
-// end region
+// endregion

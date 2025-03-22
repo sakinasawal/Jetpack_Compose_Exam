@@ -24,28 +24,47 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import io.rapidz.assignment1.R
+import io.rapidz.assignment1.data.Candidate
+import io.rapidz.assignment1.data.CandidateWithScore
 import io.rapidz.assignment1.ui.*
 import io.rapidz.assignment1.utils.Constants
 import io.rapidz.assignment1.viewmodel.AdminViewModel
 
 @Composable
-fun AdminHomeScreen(navController : NavController ?= LocalNavController.current) {
-
-	val context = LocalContext.current
-	val viewModel : AdminViewModel = hiltViewModel()
-
+fun AdminHome(navController : NavController = LocalNavController.current,
+			  viewModel : AdminViewModel = hiltViewModel()
+) {
 	val timeLimit by viewModel.timeLimit.collectAsState()
 	val candidatesWithScores by viewModel.candidatesWithScores.collectAsState()
 	val isGifVisible by viewModel.isGifVisible.collectAsState()
 
-	var searchText by remember { mutableStateOf("") }
-
-	val focusManager = LocalFocusManager.current
-	val keyboardController = LocalSoftwareKeyboardController.current
 
 	LaunchedEffect(Unit) {
 		viewModel.loadCandidate()
 	}
+
+	AdminHomeScreen(
+		navController = navController,
+		viewModel = viewModel,
+		timeLimit = timeLimit,
+		isGifVisible = isGifVisible,
+		candidatesWithScores = candidatesWithScores
+	)
+}
+
+@Composable
+fun AdminHomeScreen(
+	navController: NavController? = null,
+	viewModel : AdminViewModel? = null,
+	timeLimit : Long = 30L,
+	isGifVisible : Boolean = false,
+	candidatesWithScores : List<CandidateWithScore> = emptyList()
+){
+	val context = LocalContext.current
+	val focusManager = LocalFocusManager.current
+	val keyboardController = LocalSoftwareKeyboardController.current
+
+	var searchText by remember { mutableStateOf("") }
 
 	AdminTheme {
 		Column(
@@ -69,7 +88,7 @@ fun AdminHomeScreen(navController : NavController ?= LocalNavController.current)
 
 			InputTextFieldTime(
 				value = timeLimit,
-				onValueChange = { viewModel.setTimeLimit(it)},
+				onValueChange = { viewModel?.setTimeLimit(it)},
 				label = stringResource(id = R.string.time_limit_admin),
 				placeholder = stringResource(id = R.string.defaultTime)
 			)
@@ -86,7 +105,7 @@ fun AdminHomeScreen(navController : NavController ?= LocalNavController.current)
 					value = searchText,
 					onValueChange = {
 						searchText = it
-						viewModel.updateSearchQuery(it)
+						viewModel?.updateSearchQuery(it)
 					},
 					label = stringResource(R.string.search),
 					placeholder = stringResource(id = R.string.search_name)
@@ -118,5 +137,19 @@ fun AdminHomeScreen(navController : NavController ?= LocalNavController.current)
 @Preview
 @Composable
 private fun AdminScreenPreview(){
-	AdminHomeScreen()
+	AdminHomeScreen(
+		candidatesWithScores = listOf(
+			CandidateWithScore(
+				candidate = Candidate(id = 1, name = "Sakina", emailAddress = ""),
+				totalScore = 85,
+				totalTimeSpent = 120
+			),
+			CandidateWithScore(
+				candidate = Candidate(id = 1, name = "Najihah", emailAddress = ""),
+				totalScore = 85,
+				totalTimeSpent = 100
+			)
+		)
+	)
 }
+

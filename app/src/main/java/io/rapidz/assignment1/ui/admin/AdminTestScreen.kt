@@ -18,31 +18,33 @@ import androidx.compose.material.icons.filled.Dangerous
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import io.rapidz.assignment1.LocalNavController
 import io.rapidz.assignment1.R
+import io.rapidz.assignment1.data.Question
 import io.rapidz.assignment1.data.QuestionType
 import io.rapidz.assignment1.data.Role
 import io.rapidz.assignment1.ui.AdminTheme
 import io.rapidz.assignment1.ui.AppTypography
 import io.rapidz.assignment1.ui.BottomAppBar
+import io.rapidz.assignment1.ui.CheckBoxAnswer
 import io.rapidz.assignment1.ui.DefaultTheme
 import io.rapidz.assignment1.ui.GeneralAlertDialog
+import io.rapidz.assignment1.ui.RadioButtonAnswer
 import io.rapidz.assignment1.ui.TextLabelTitle
+import io.rapidz.assignment1.ui.Textarea
 import io.rapidz.assignment1.ui.formatSecondsToTime
 import io.rapidz.assignment1.ui.md_theme_admin_error
 import io.rapidz.assignment1.ui.spacing_20
 import io.rapidz.assignment1.ui.spacing_4
-import io.rapidz.assignment1.ui.test.CheckBoxAnswer
-import io.rapidz.assignment1.ui.test.RadioButtonAnswer
-import io.rapidz.assignment1.ui.test.Textarea
 import io.rapidz.assignment1.utils.Constants
 
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun AdminTestScreen(navController: NavController? = LocalNavController.current,
-					viewModel : AdminViewModel = hiltViewModel()) {
+fun AdminTest(navController: NavController? = LocalNavController.current,
+			  viewModel : AdminViewModel = hiltViewModel()) {
 
 	val uiState by viewModel.uiState.collectAsState()
 	val freeTextScoreUi by viewModel.freeTextScores.collectAsState()
@@ -91,6 +93,29 @@ fun AdminTestScreen(navController: NavController? = LocalNavController.current,
 		}
 	}
 
+	AdminTestScreen(
+		viewModel = viewModel,
+		timeSpent = timeSpent,
+		isFreeText = isFreeText,
+		isCorrectAnswer = isCorrectAnswer,
+		bothIconShown = bothIconShown,
+		currentQuestion = currentQuestion,
+		candidateAnswer = candidateAnswer
+	)
+
+}
+
+@Composable
+fun AdminTestScreen(
+	viewModel: AdminViewModel? = null,
+	timeSpent : Int,
+	isFreeText : Boolean = false,
+	freeTextScore : Boolean? = false,
+	isCorrectAnswer : Boolean = false,
+	bothIconShown : Boolean = false,
+	currentQuestion : Question?,
+	candidateAnswer : String? = "",
+){
 	AdminTheme {
 		BottomAppBar(
 			role = Role(Constants.Role.ROLE_ADMIN),
@@ -118,12 +143,12 @@ fun AdminTestScreen(navController: NavController? = LocalNavController.current,
 				isFreeText && freeTextScore == true -> Color(0xFF018786) // Correct answer
 				else -> Color(0xFF018786)
 			},
-			onDoneClick = if (isFreeText) { { currentQuestion?.id?.let { viewModel.scoreFreeText(it, true) } } } else null,
-			onCloseClick = if (isFreeText) { { currentQuestion?.id?.let { viewModel.scoreFreeText(it, false) } } } else null,
-			onLeftDoubleArrowClick = { viewModel.goToFirstQuestion() },
-			onLeftArrowClick = { viewModel.goToPreviousQuestion() },
-			onRightArrowClick = { viewModel.goToNextQuestion() },
-			onRightDoubleArrowClick = { viewModel.goToLastQuestion() },
+			onDoneClick = if (isFreeText) { { currentQuestion?.id?.let { viewModel?.scoreFreeText(it, true) } } } else null,
+			onCloseClick = if (isFreeText) { { currentQuestion?.id?.let { viewModel?.scoreFreeText(it, false) } } } else null,
+			onLeftDoubleArrowClick = { viewModel?.goToFirstQuestion() },
+			onLeftArrowClick = { viewModel?.goToPreviousQuestion() },
+			onRightArrowClick = { viewModel?.goToNextQuestion() },
+			onRightDoubleArrowClick = { viewModel?.goToLastQuestion() },
 		){
 			Column(
 				modifier = Modifier
@@ -165,4 +190,60 @@ fun AdminTestScreen(navController: NavController? = LocalNavController.current,
 			}
 		}
 	}
+}
+
+@Preview
+@Composable
+fun AdminTestScreenSingleChoicePreview(){
+	val fakeQuestion = Question(
+		id = 1,
+		questionText = "What is your favorite programming language?",
+		questionType = QuestionType.SINGLE_CHOICE,
+		options = listOf("Kotlin", "Java", "Swift", "Python")
+	)
+
+	AdminTestScreen(
+		timeSpent = 120,
+		isFreeText = false,
+		isCorrectAnswer = true,
+		bothIconShown = false,
+		currentQuestion = fakeQuestion
+	)
+}
+
+@Preview
+@Composable
+fun AdminTestScreenMultipleChoicePreview(){
+	val fakeQuestion = Question(
+		id = 2,
+		questionText = "What is your favorite programming language?",
+		questionType = QuestionType.MULTIPLE_CHOICE,
+		options = listOf("Kotlin", "Java", "Swift", "Python")
+	)
+
+	AdminTestScreen(
+		timeSpent = 18,
+		isFreeText = false,
+		isCorrectAnswer = false,
+		bothIconShown = false,
+		currentQuestion = fakeQuestion
+	)
+}
+
+@Preview
+@Composable
+fun AdminTestScreenFreeTextPreview(){
+	val fakeQuestion = Question(
+		id = 3,
+		questionText = "What is your favorite programming language?",
+		questionType = QuestionType.FREE_TEXT
+	)
+
+	AdminTestScreen(
+		timeSpent = 12,
+		isFreeText = false,
+		isCorrectAnswer = true,
+		bothIconShown = false,
+		currentQuestion = fakeQuestion
+	)
 }

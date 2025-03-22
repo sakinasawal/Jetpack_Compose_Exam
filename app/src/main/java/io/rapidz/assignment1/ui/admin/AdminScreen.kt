@@ -27,7 +27,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import io.rapidz.assignment1.ui.AppButton
-import io.rapidz.assignment1.ui.InputTextSearch
 import io.rapidz.assignment1.LocalNavController
 import io.rapidz.assignment1.R
 import io.rapidz.assignment1.Screen
@@ -142,5 +141,5 @@ private fun AdminForm(
 @Preview
 @Composable
 private fun AdminScreenPreview(){
-	AdminScreen()
+	AdminScreen(navController = null)
 }

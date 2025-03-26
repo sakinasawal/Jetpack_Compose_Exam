@@ -166,5 +166,7 @@ fun CandidateRegisterPreview(){
 @Preview
 @Composable
 fun ShowAlertDialogPreview(){
-	ShowAlertDialog()
+	ShowAlertDialog(
+		candidateName = "Sakina"
+	)
 }

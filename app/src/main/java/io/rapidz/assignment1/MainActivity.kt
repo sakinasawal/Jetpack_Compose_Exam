@@ -27,16 +27,13 @@ class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?){
 		super.onCreate(savedInstanceState)
 
-		installSplashScreen()
+		val splashScreen = installSplashScreen()
 
 		setContent {
 			val splashViewModel : SplashViewModel = hiltViewModel()
 			val keepSplashScreen by splashViewModel.keepSplashScreen.collectAsState()
 
-			LaunchedEffect(keepSplashScreen) {
-				installSplashScreen().setKeepOnScreenCondition { keepSplashScreen }
-			}
-
+			splashScreen.setKeepOnScreenCondition{keepSplashScreen}
 			MainApplication()
 		}
 	}
